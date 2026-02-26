@@ -1,0 +1,35 @@
+# ===========================
+# BACKEND - Spring Boot
+# ===========================
+backend-spring/target/
+backend-spring/application-local.yml
+backend-spring/src/main/resources/application.properties
+
+# ===========================
+# FRONTEND - Angular
+# ===========================
+frontend-angular/node_modules/
+frontend-angular/dist/
+
+# ===========================
+# SENSIVEIS - nunca commitar
+# ===========================
+.env
+*.env
+application-local.yml
+application-prod.yml
+application.properties
+
+# ===========================
+# IDE
+# ===========================
+.idea/
+*.iml
+.vscode/
+
+# ===========================
+# SISTEMA
+# ===========================
+*.log
+.DS_Store
+Thumbs.db
