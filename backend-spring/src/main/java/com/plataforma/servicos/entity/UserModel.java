@@ -1,5 +1,6 @@
 package com.plataforma.servicos.entity;
 
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -11,14 +12,21 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
+@Entity
+@Table(name = "users")
 public class UserModel {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private UUID id;
 
+    @Column(nullable = false)
     private String nome;
 
+    @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = false)
     private String senha;
 
     @Builder.Default // Define o perfil padrão como CLIENTE
