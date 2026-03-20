@@ -30,11 +30,11 @@ public class ServiceModel {
     @Column(nullable = false)
     private BigDecimal preco;
 
-    @Column(nullable = false)
-    private UserModel prestador; // Prestador do serviço
+    @Column(nullable = false) //tira o UserModel e utiliza o UUID do prestador para referência por enquanto, pode ser alterado para relacionamento futuro
+    private UUID prestador; // Prestador do serviço
 
-    @Column(nullable = false)
-    private CategoryModel categoria;
+    @Column(nullable = false) // tira o CategoryModel e utiliza o UUID da categoria para referência por enquanto, pode ser alterado para relacionamento futuro
+    private UUID categoria;
 
     @Builder.Default
     @Column(nullable = false)
