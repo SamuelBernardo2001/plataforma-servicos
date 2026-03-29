@@ -1,4 +1,4 @@
-package com.plataforma.servicos.dto;
+package com.plataforma.servicos.dto.UserDTOS;
 
 import com.plataforma.servicos.entity.UserENUM;
 import jakarta.validation.constraints.Email;
