@@ -106,3 +106,85 @@ Nesta etapa foi criado o modelo de domínio puro, sem dependência de JPA, garan
 🔜 Próximo Módulo
 
 M3 – Integração com banco de dados utilizando Spring Data JPA.
+
+Foi realizada a implementação completa da camada de persistência do sistema, integrando o backend com banco de dados relacional.
+
+🐳 Banco de Dados
+
+Configuração do MySQL utilizando Docker
+
+Criação do ambiente isolado com docker-compose
+
+Banco plataforma_servicos inicializado com sucesso
+
+🧩 Integração com Spring Boot
+
+Configuração do datasource no application.properties
+
+Conexão com banco utilizando HikariCP
+
+Projeto conectado com sucesso ao MySQL
+
+🗄️ JPA (Hibernate)
+
+Conversão parcial das entidades para JPA:
+
+UserModel → @Entity, @Table, @Id
+
+ServiceModel → @Entity, @Table, @Id
+
+✔ Uso de jakarta.persistence
+✔ Mapeamento de colunas com @Column
+✔ Estrutura preparada para relacionamentos futuros
+
+📁 Repositórios
+
+Criação dos repositórios com Spring Data JPA:
+
+UserRepository
+
+ServiceRepository
+
+🐘 Flyway (Migrations)
+
+Criação do versionamento do banco de dados com Flyway.
+
+Migrations criadas:
+
+V1__create_table_users
+
+V2__create_table_categories
+
+V3__create_table_services
+
+V4__create_table_service_images
+
+V5__create_table_service_orders
+
+V6__create_table_reviews
+
+V7__create_table_favorites
+
+✔ Execução automática ao subir o projeto
+✔ Controle de versão do banco ativo
+✔ Histórico salvo em flyway_schema_history
+
+🧪 Resultado
+
+✔ Projeto compila com sucesso (BUILD SUCCESS)
+
+✔ Spring Boot inicia corretamente
+
+✔ Flyway executa as migrations
+
+✔ 7 tabelas criadas no banco
+
+✔ Integração com banco funcionando
+
+⚠️ Observações
+
+IDs estão sendo armazenados como UUID (BINARY(16))
+
+Migrations não devem ser alteradas após execução
+
+Novas alterações devem ser feitas em novas versões (V8, V9...)
