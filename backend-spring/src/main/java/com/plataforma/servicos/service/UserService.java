@@ -2,6 +2,7 @@ package com.plataforma.servicos.service;
 
 import com.plataforma.servicos.dto.UserDTOS.UserRequestDTO;
 import com.plataforma.servicos.dto.UserDTOS.UserResponseDTO;
+import com.plataforma.servicos.dto.UserDTOS.UserUpdateDTO;
 import com.plataforma.servicos.entity.UserModel;
 import com.plataforma.servicos.mapper.UserMapper;
 import com.plataforma.servicos.repository.UserRepository;
@@ -59,5 +60,18 @@ public class UserService {
         return userMapper.toResponseDTO(userRepository.save(user));
     }
 
+    // Atualiza dados do perfil do usuário
+    // Regra: apenas nome e telefone podem ser alterados
+    @Transactional
+    public UserResponseDTO update(UUID id, UserUpdateDTO dto) {
+        UserModel user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        user.setNome(dto.nome());
+        user.setTelefone(dto.telefone());
+        user.setAtualizadoEm(LocalDateTime.now());
+
+        return userMapper.toResponseDTO(userRepository.save(user));
+    }
     }
 
