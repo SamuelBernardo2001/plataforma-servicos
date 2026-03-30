@@ -1,6 +1,7 @@
 package com.plataforma.servicos.service;
 
 import com.plataforma.servicos.dto.ServiceDTOS.ServiceResponseDTO;
+import com.plataforma.servicos.entity.CategoryModel;
 import com.plataforma.servicos.entity.ServiceModel;
 import com.plataforma.servicos.mapper.ServiceMapper;
 import com.plataforma.servicos.repository.CategoryRepository;
@@ -42,6 +43,21 @@ public class ServicoService {
         return serviceRepository.findAll()
                 .stream()
                 .filter(service -> Boolean.TRUE.equals(service.getAtivo()))
+                .map(serviceMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Lista serviços por categoria
+    // Regra: apenas serviços ativos da categoria aparecem
+    public List<ServiceResponseDTO> findByCategory(UUID categoriaId) {
+        CategoryModel categoria = categoryRepository.findById(categoriaId)
+                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+
+        return serviceRepository.findAll()
+                .stream()
+                .filter(service -> Boolean.TRUE.equals(service.getAtivo()))
+                .filter(service -> service.getCategoria() != null &&
+                        service.getCategoria().getId().equals(categoriaId))
                 .map(serviceMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
