@@ -3,6 +3,7 @@ package com.plataforma.servicos.service;
 import com.plataforma.servicos.dto.ServiceDTOS.ServiceResponseDTO;
 import com.plataforma.servicos.entity.CategoryModel;
 import com.plataforma.servicos.entity.ServiceModel;
+import com.plataforma.servicos.entity.UserModel;
 import com.plataforma.servicos.mapper.ServiceMapper;
 import com.plataforma.servicos.repository.CategoryRepository;
 import com.plataforma.servicos.repository.ServiceRepository;
@@ -58,6 +59,21 @@ public class ServicoService {
                 .filter(service -> Boolean.TRUE.equals(service.getAtivo()))
                 .filter(service -> service.getCategoria() != null &&
                         service.getCategoria().getId().equals(categoriaId))
+                .map(serviceMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Lista serviços de um prestador específico
+    // Regra: apenas serviços ativos do prestador aparecem
+    public List<ServiceResponseDTO> findByPrestador(UUID prestadorId) {
+        UserModel prestador = userRepository.findById(prestadorId)
+                .orElseThrow(() -> new RuntimeException("Prestador não encontrado"));
+
+        return serviceRepository.findAll()
+                .stream()
+                .filter(service -> Boolean.TRUE.equals(service.getAtivo()))
+                .filter(service -> service.getPrestador() != null &&
+                        service.getPrestador().getId().equals(prestadorId))
                 .map(serviceMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
