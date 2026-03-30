@@ -1,12 +1,15 @@
 package com.plataforma.servicos.service;
 
+import com.plataforma.servicos.dto.UserDTOS.UserRequestDTO;
 import com.plataforma.servicos.dto.UserDTOS.UserResponseDTO;
 import com.plataforma.servicos.entity.UserModel;
 import com.plataforma.servicos.mapper.UserMapper;
 import com.plataforma.servicos.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -41,6 +44,20 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    // Cria novo usuário
+    // Regra: email único no sistema
+    @Transactional
+    public UserResponseDTO create(UserRequestDTO dto) {
+        if (userRepository.findByEmail(dto.email()).isPresent()) {
+            throw new RuntimeException("Email já cadastrado no sistema");
+        }
+
+        UserModel user = userMapper.toModel(dto);
+        user.setCriadoEm(LocalDateTime.now());
+        user.setAtualizadoEm(LocalDateTime.now());
+
+        return userMapper.toResponseDTO(userRepository.save(user));
+    }
 
     }
 
