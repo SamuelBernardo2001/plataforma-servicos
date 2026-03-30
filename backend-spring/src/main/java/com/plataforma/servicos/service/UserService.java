@@ -1,5 +1,6 @@
 package com.plataforma.servicos.service;
 
+import com.plataforma.servicos.dto.UserDTOS.UserPasswordDTO;
 import com.plataforma.servicos.dto.UserDTOS.UserRequestDTO;
 import com.plataforma.servicos.dto.UserDTOS.UserResponseDTO;
 import com.plataforma.servicos.dto.UserDTOS.UserUpdateDTO;
@@ -72,6 +73,33 @@ public class UserService {
         user.setAtualizadoEm(LocalDateTime.now());
 
         return userMapper.toResponseDTO(userRepository.save(user));
+    }
+
+    // Atualiza senha do usuário
+    // Regra: senha atual deve ser confirmada antes de alterar
+    // Regra: nova senha deve ser diferente da atual
+    // Regra: nova senha e confirmação devem ser iguais
+    @Transactional
+    public void updatePassword(UUID id, UserPasswordDTO dto) {
+        UserModel user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        if (!user.getSenha().equals(dto.senhaAtual())) {
+            throw new RuntimeException("Senha atual incorreta");
+        }
+
+        if (!dto.novaSenha().equals(dto.confirmarSenha())) {
+            throw new RuntimeException("Nova senha e confirmação não coincidem");
+        }
+
+        if (dto.novaSenha().equals(dto.senhaAtual())) {
+            throw new RuntimeException("Nova senha deve ser diferente da senha atual");
+        }
+
+        user.setSenha(dto.novaSenha()); // será criptografada no M7 (Segurança)
+        user.setAtualizadoEm(LocalDateTime.now());
+
+        userRepository.save(user);
     }
     }
 
