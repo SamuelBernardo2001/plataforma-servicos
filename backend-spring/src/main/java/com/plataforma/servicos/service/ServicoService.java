@@ -114,4 +114,38 @@ public class ServicoService {
 
         return serviceMapper.toResponseDTO(serviceRepository.save(service));
     }
+
+    // Atualiza dados do serviço
+    // Regra: apenas o próprio prestador pode atualizar seu serviço
+    // Regra: não é possível atualizar serviço desativado
+    @Transactional
+    public ServiceResponseDTO update(UUID id, UUID prestadorId, ServiceRequestDTO dto) {
+        ServiceModel service = serviceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Serviço não encontrado"));
+
+        if (!service.getPrestador().getId().equals(prestadorId)) {
+            throw new RuntimeException("Você não tem permissão para atualizar este serviço");
+        }
+
+        if (Boolean.FALSE.equals(service.getAtivo())) {
+            throw new RuntimeException("Não é possível atualizar um serviço desativado");
+        }
+
+        CategoryModel categoria = categoryRepository.findById(dto.categoriaId())
+                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+
+        if (Boolean.FALSE.equals(categoria.getAtivo())) {
+            throw new RuntimeException("Categoria inativa não pode ser utilizada");
+        }
+
+        service.setNome(dto.nome());
+        service.setDescricao(dto.descricao());
+        service.setPreco(dto.preco());
+        service.setTelefoneContato(dto.telefoneContato());
+        service.setCategoria(categoria);
+        service.setAtualizadoEm(LocalDateTime.now());
+
+        return serviceMapper.toResponseDTO(serviceRepository.save(service));
+    }
+
 }
