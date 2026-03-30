@@ -170,4 +170,23 @@ public class ServicoService {
         serviceRepository.save(service);
     }
 
+    // Calcula e retorna a média de avaliações de um serviço
+    // Regra: média calculada apenas com avaliações existentes
+    // Regra: se não houver avaliações retorna 0.0
+    public Double calcularMediaAvaliacao(UUID id) {
+        ServiceModel service = serviceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Serviço não encontrado"));
+
+        if (service.getAvaliacoes() == null || service.getAvaliacoes().isEmpty()) {
+            return 0.0;
+        }
+
+        return service.getAvaliacoes()
+                .stream()
+                .mapToInt(review -> review.getClassificacao())
+                .average()
+                .orElse(0.0);
+    }
+
+
 }
