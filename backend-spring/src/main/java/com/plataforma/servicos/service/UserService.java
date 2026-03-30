@@ -7,7 +7,9 @@ import com.plataforma.servicos.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +30,15 @@ public class UserService {
         UserModel user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         return userMapper.toResponseDTO(user);
+    }
+
+    // Lista todos os usuários ativos
+    public List<UserResponseDTO> findAll() {
+        return userRepository.findAll()
+                .stream()
+                .filter(user -> Boolean.TRUE.equals(user.getAtivo()))
+                .map(userMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
 
