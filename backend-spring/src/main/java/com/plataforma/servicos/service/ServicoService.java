@@ -9,7 +9,9 @@ import com.plataforma.servicos.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,5 +34,15 @@ public class ServicoService {
         }
 
         return serviceMapper.toResponseDTO(service);
+    }
+
+    // Lista todos os serviços ativos
+    // Regra: apenas serviços ativos aparecem na listagem pública
+    public List<ServiceResponseDTO> findAll() {
+        return serviceRepository.findAll()
+                .stream()
+                .filter(service -> Boolean.TRUE.equals(service.getAtivo()))
+                .map(serviceMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 }
