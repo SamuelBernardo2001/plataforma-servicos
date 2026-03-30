@@ -34,6 +34,8 @@ public class UserModel {
 
     private String telefone;
 
+    private UUID enderecoId;
+
     @Builder.Default
     private Boolean ativo = true;
 
