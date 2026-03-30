@@ -44,40 +44,55 @@ public class ServicoService {
 
     // Lista todos os serviços ativos
     // Regra: apenas serviços ativos aparecem na listagem pública
+    // Usa findByAtivo() — filtra direto no banco: WHERE ativo = true
     public List<ServiceResponseDTO> findAll() {
-        return serviceRepository.findAll()
+        return serviceRepository.findByAtivo(true)
                 .stream()
-                .filter(service -> Boolean.TRUE.equals(service.getAtivo()))
                 .map(serviceMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    // Lista serviços por categoria
+    // Lista serviços ativos por categoria
+    // Regra: categoria deve existir
     // Regra: apenas serviços ativos da categoria aparecem
+    // Usa findByCategoriaIdAndAtivo() — filtra direto no banco:
+    // WHERE categoria_id = ? AND ativo = true
     public List<ServiceResponseDTO> findByCategory(UUID categoriaId) {
-        CategoryModel categoria = categoryRepository.findById(categoriaId)
+        categoryRepository.findById(categoriaId)
                 .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
 
-        return serviceRepository.findAll()
+        return serviceRepository.findByCategoriaIdAndAtivo(categoriaId, true)
                 .stream()
-                .filter(service -> Boolean.TRUE.equals(service.getAtivo()))
-                .filter(service -> service.getCategoria() != null &&
-                        service.getCategoria().getId().equals(categoriaId))
                 .map(serviceMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    // Lista serviços de um prestador específico
-    // Regra: apenas serviços ativos do prestador aparecem
+    // Lista serviços ativos de um prestador específico
+    // Usado na página pública do prestador vista pelo cliente
+    // Regra: prestador deve existir
+    // Regra: apenas serviços ativos aparecem para o público
+    // Usa findByPrestadorIdAndAtivo() — filtra direto no banco
     public List<ServiceResponseDTO> findByPrestador(UUID prestadorId) {
-        UserModel prestador = userRepository.findById(prestadorId)
+        userRepository.findById(prestadorId)
                 .orElseThrow(() -> new RuntimeException("Prestador não encontrado"));
 
-        return serviceRepository.findAll()
+        return serviceRepository.findByPrestadorIdAndAtivo(prestadorId, true)
                 .stream()
-                .filter(service -> Boolean.TRUE.equals(service.getAtivo()))
-                .filter(service -> service.getPrestador() != null &&
-                        service.getPrestador().getId().equals(prestadorId))
+                .map(serviceMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Lista TODOS os serviços de um prestador (ativos e inativos)
+    // Usado no painel do prestador para gerenciar seus próprios serviços
+    // Regra: prestador deve existir
+    // Regra: prestador vê todos os seus serviços inclusive os desativados
+    // Usa findByPrestadorId() — filtra direto no banco:
+    public List<ServiceResponseDTO> findAllByPrestador(UUID prestadorId) {
+        userRepository.findById(prestadorId)
+                .orElseThrow(() -> new RuntimeException("Prestador não encontrado"));
+
+        return serviceRepository.findByPrestadorId(prestadorId)
+                .stream()
                 .map(serviceMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }

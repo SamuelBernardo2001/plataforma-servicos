@@ -7,15 +7,18 @@ import java.util.UUID;
 
 public interface ServiceRepository extends JpaRepository<ServiceModel, UUID> {
 
-    // Busca serviços por categoria — usado na listagem por categoria
+    // busca serviços por status ativo/inativo, categoria e prestador
+    List<ServiceModel> findByAtivo(Boolean ativo);
+
+    // busca serviços por categoria e prestador, independente do status
     List<ServiceModel> findByCategoriaId(UUID categoriaId);
 
-    // Busca serviços por prestador — usado no painel do prestador
+    // busca serviços por prestador, independente do status
     List<ServiceModel> findByPrestadorId(UUID prestadorId);
 
-    // Busca serviços ativos por categoria — usado na listagem pública
+    // busca serviços por categoria e status, independente do prestador
     List<ServiceModel> findByCategoriaIdAndAtivo(UUID categoriaId, Boolean ativo);
 
-    // Busca serviços ativos por prestador — usado no perfil do prestador
+    // busca serviços por prestador e status, independente da categoria
     List<ServiceModel> findByPrestadorIdAndAtivo(UUID prestadorId, Boolean ativo);
 }
