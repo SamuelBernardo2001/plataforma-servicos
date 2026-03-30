@@ -13,8 +13,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepository userRepository;
-    private final UserMapper userMapper;
+    private final UserRepository userRepository; // Injeção do UserRepository para acessar o banco de dados
+    private final UserMapper userMapper; // Injeção do UserMapper para converter entre UserModel e UserResponseDTO
+
+    // Busca usuário por ID
+    public UserResponseDTO findById(UUID id) {
+        UserModel user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        return userMapper.toResponseDTO(user);
+    }
 
     }
 
