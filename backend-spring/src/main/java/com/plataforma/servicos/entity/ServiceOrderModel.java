@@ -40,6 +40,9 @@ public class ServiceOrderModel {
     @Column(nullable = false)
     private BigDecimal price;
 
+    @Column(length = 1000)
+    private String descricao;
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     @Column(nullable = false)
