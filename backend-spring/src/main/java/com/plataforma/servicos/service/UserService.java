@@ -23,5 +23,12 @@ public class UserService {
         return userMapper.toResponseDTO(user);
     }
 
+    // Busca usuário por email
+    public UserResponseDTO findByEmail(String email) {
+        UserModel user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        return userMapper.toResponseDTO(user);
+    }
+
     }
 
