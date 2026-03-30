@@ -1,8 +1,10 @@
 package com.plataforma.servicos.service;
 
+import com.plataforma.servicos.dto.ServiceDTOS.ServiceRequestDTO;
 import com.plataforma.servicos.dto.ServiceDTOS.ServiceResponseDTO;
 import com.plataforma.servicos.entity.CategoryModel;
 import com.plataforma.servicos.entity.ServiceModel;
+import com.plataforma.servicos.entity.UserENUM;
 import com.plataforma.servicos.entity.UserModel;
 import com.plataforma.servicos.mapper.ServiceMapper;
 import com.plataforma.servicos.repository.CategoryRepository;
@@ -10,7 +12,9 @@ import com.plataforma.servicos.repository.ServiceRepository;
 import com.plataforma.servicos.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -76,5 +80,38 @@ public class ServicoService {
                         service.getPrestador().getId().equals(prestadorId))
                 .map(serviceMapper::toResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    // Cria novo serviço
+    // Regra: apenas usuários com perfil PRESTADOR podem criar serviços
+    // Regra: categoria informada deve existir e estar ativa
+    // Regra: prestador deve estar ativo no sistema
+    @Transactional
+    public ServiceResponseDTO create(UUID prestadorId, ServiceRequestDTO dto) {
+        UserModel prestador = userRepository.findById(prestadorId)
+                .orElseThrow(() -> new RuntimeException("Prestador não encontrado"));
+
+        if (!UserENUM.PRESTADOR.equals(prestador.getPerfil())) {
+            throw new RuntimeException("Apenas prestadores podem cadastrar serviços");
+        }
+
+        if (Boolean.FALSE.equals(prestador.getAtivo())) {
+            throw new RuntimeException("Prestador inativo não pode cadastrar serviços");
+        }
+
+        CategoryModel categoria = categoryRepository.findById(dto.categoriaId())
+                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+
+        if (Boolean.FALSE.equals(categoria.getAtivo())) {
+            throw new RuntimeException("Categoria inativa não pode ser utilizada");
+        }
+
+        ServiceModel service = serviceMapper.toModel(dto);
+        service.setPrestador(prestador);
+        service.setCategoria(categoria);
+        service.setCriadoEm(LocalDateTime.now());
+        service.setAtualizadoEm(LocalDateTime.now());
+
+        return serviceMapper.toResponseDTO(serviceRepository.save(service));
     }
 }
