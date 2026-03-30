@@ -31,6 +31,9 @@ public class ServiceModel {
     @Column(nullable = false)
     private BigDecimal preco;
 
+    @Column(length = 20)
+    private String telefoneContato;
+
     // Muitos serviços pertencem a um prestador
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "prestador_id", nullable = false)

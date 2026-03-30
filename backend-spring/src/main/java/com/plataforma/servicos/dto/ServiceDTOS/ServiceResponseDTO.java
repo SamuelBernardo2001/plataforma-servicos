@@ -7,14 +7,13 @@ import java.util.UUID;
 public record ServiceResponseDTO(
 
         UUID id,
-        String titulo,
+        String nome,
         String descricao,
         BigDecimal preco,
         UUID categoriaId,
         String categoriaNome,
         UUID prestadorId,
         String prestadorNome,
-        String localizacao,
         String telefoneContato,
         Boolean ativo,
         Double mediaAvaliacao,

@@ -7,7 +7,7 @@ import java.util.UUID;
 public record ServiceRequestDTO(
 
         @NotBlank(message = "Título é obrigatório")
-        String titulo,
+        String nome,
 
         @NotBlank(message = "Descrição é obrigatória")
         String descricao,
@@ -18,9 +18,6 @@ public record ServiceRequestDTO(
 
         @NotNull(message = "Categoria é obrigatória")
         UUID categoriaId,
-
-        @NotBlank(message = "Localização é obrigatória")
-        String localizacao,
 
         @NotBlank(message = "Telefone de contato é obrigatório")
         String telefoneContato
