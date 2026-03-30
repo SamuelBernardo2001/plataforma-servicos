@@ -101,5 +101,23 @@ public class UserService {
 
         userRepository.save(user);
     }
+
+
+    // Desativa usuário (soft delete)
+    // Regra: usuário não é deletado do banco, apenas desativado
+    @Transactional
+    public void deactivate(UUID id) {
+        UserModel user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        if (Boolean.FALSE.equals(user.getAtivo())) {
+            throw new RuntimeException("Usuário já está desativado");
+        }
+
+        user.setAtivo(false);
+        user.setAtualizadoEm(LocalDateTime.now());
+
+        userRepository.save(user);
+    }
     }
 
