@@ -20,11 +20,15 @@ public class FavoriteModel {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
-    private UUID userId;
+    // Muitos favoritos pertencem a um usuário
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserModel usuario;
 
-    @Column(nullable = false)
-    private UUID serviceId;
+    // Muitos favoritos pertencem a um serviço
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_id", nullable = false)
+    private ServiceModel service;
 
     private LocalDateTime criadoEm;
 }

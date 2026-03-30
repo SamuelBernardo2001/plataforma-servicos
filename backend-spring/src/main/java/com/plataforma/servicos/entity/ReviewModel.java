@@ -20,11 +20,20 @@ public class ReviewModel {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
-    private UUID serviceId;
+    // Muitas avaliações pertencem a um serviço
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_id", nullable = false)
+    private ServiceModel service;
 
-    @Column(nullable = false)
-    private UUID userId;
+    // Muitas avaliações pertencem a um usuário (cliente)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserModel usuario;
+
+    // Uma avaliação pertence a uma ordem (só existe após COMPLETED)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_order_id", nullable = false, unique = true)
+    private ServiceOrderModel serviceOrder;
 
     @Column(nullable = false)
     private Integer classificacao; // Ex: 1 a 5

@@ -20,14 +20,20 @@ public class ReportModel {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
-    private UUID reporterId;   // Quem denunciou
+    // Muitas denúncias pertencem a quem denunciou
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reporter_id", nullable = false)
+    private UserModel reporter;
 
-    @Column(nullable = false)
-    private UUID reportedUserId; // Usuário denunciado
+    // Muitas denúncias pertencem a quem foi denunciado
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reported_user_id", nullable = false)
+    private UserModel reportedUser;
 
-    @Column(nullable = false)
-    private UUID serviceOrderId; // Ordem relacionada (opcional)
+    // Uma denúncia pode estar vinculada a uma ordem (opcional)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_order_id")
+    private ServiceOrderModel serviceOrder;
 
     @Column(nullable = false)
     private String razao; // Motivo da denúncia

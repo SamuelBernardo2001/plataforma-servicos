@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -32,4 +33,8 @@ public class CategoryModel {
     private LocalDateTime criadoEm;
 
     private LocalDateTime atualizadoEm;
+
+    // Uma categoria pode ter muitos serviços
+    @OneToMany(mappedBy = "categoria", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ServiceModel> servicos;
 }

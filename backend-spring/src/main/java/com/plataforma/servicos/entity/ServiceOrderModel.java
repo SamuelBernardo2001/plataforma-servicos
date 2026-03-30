@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -21,18 +22,25 @@ public class ServiceOrderModel {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
-    private UUID serviceId;
+    // Muitas ordens pertencem a um serviço
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_id", nullable = false)
+    private ServiceModel service;
 
-    @Column(nullable = false)
-    private UUID clientId;
+    // Muitas ordens pertencem a um cliente
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id", nullable = false)
+    private UserModel cliente;
 
-    @Column(nullable = false)
-    private UUID provedorId;
+    // Muitas ordens pertencem a um prestador
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "provedor_id", nullable = false)
+    private UserModel prestador;
 
     @Column(nullable = false)
     private BigDecimal price;
 
+    @Enumerated(EnumType.STRING)
     @Builder.Default
     @Column(nullable = false)
     private OrderStatusEnum status = OrderStatusEnum.REQUESTED;
@@ -42,4 +50,16 @@ public class ServiceOrderModel {
     private LocalDateTime atualizadoEm;
 
     private LocalDateTime concluidoEm;
+
+    // Uma ordem pode ter muitas mensagens
+    @OneToMany(mappedBy = "serviceOrder", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<MessageModel> mensagens;
+
+    // Uma ordem pode ter uma avaliação
+    @OneToOne(mappedBy = "serviceOrder", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private ReviewModel avaliacao;
+
+    // Uma ordem pode ter uma denúncia
+    @OneToOne(mappedBy = "serviceOrder", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private ReportModel denuncia;
 }

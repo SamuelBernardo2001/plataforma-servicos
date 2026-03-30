@@ -19,8 +19,10 @@ public class EnderecoModel {
     @Column(columnDefinition = "BINARY(16)")
     private UUID id;
 
-    @Column(name = "user_id", nullable = false)
-    private UUID userId;
+    // Um endereço pertence a um usuário
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private UserModel user;
 
     @Column(nullable = false, length = 9)
     private String cep;

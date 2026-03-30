@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -30,11 +31,15 @@ public class ServiceModel {
     @Column(nullable = false)
     private BigDecimal preco;
 
-    @Column(nullable = false) //tira o UserModel e utiliza o UUID do prestador para referência por enquanto, pode ser alterado para relacionamento futuro
-    private UUID prestador; // Prestador do serviço
+    // Muitos serviços pertencem a um prestador
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "prestador_id", nullable = false)
+    private UserModel prestador;
 
-    @Column(nullable = false) // tira o CategoryModel e utiliza o UUID da categoria para referência por enquanto, pode ser alterado para relacionamento futuro
-    private UUID categoria;
+    // Muitos serviços pertencem a uma categoria
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categoria_id", nullable = false)
+    private CategoryModel categoria;
 
     @Builder.Default
     @Column(nullable = false)
@@ -42,4 +47,21 @@ public class ServiceModel {
 
     private LocalDateTime criadoEm;
 
-     private LocalDateTime atualizadoEm;}
+    private LocalDateTime atualizadoEm;
+
+    // Um serviço pode ter muitas imagens
+    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ServiceImageModel> imagens;
+
+    // Um serviço pode ter muitas ordens
+    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ServiceOrderModel> ordens;
+
+    // Um serviço pode ter muitas avaliações
+    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ReviewModel> avaliacoes;
+
+    // Um serviço pode ser favoritado por muitos usuários
+    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<FavoriteModel> favoritos;
+}

@@ -20,14 +20,20 @@ public class MessageModel {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
-    private UUID serviceOrderId;
+    // Muitas mensagens pertencem a uma ordem
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_order_id", nullable = false)
+    private ServiceOrderModel serviceOrder;
 
-    @Column(nullable = false)
-    private UUID remetenteId;
+    // Muitas mensagens pertencem a quem enviou
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "remetente_id", nullable = false)
+    private UserModel remetente;
 
-    @Column(nullable = false)
-    private UUID receptorId;
+    // Muitas mensagens pertencem a quem recebe
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "receptor_id", nullable = false)
+    private UserModel receptor;
 
     @Column(nullable = false, columnDefinition = "TEXT") // Permite mensagens longas
     private String conteudo;

@@ -19,8 +19,10 @@ public class ServiceImageModel {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
-    private UUID serviceId;
+    // Muitas imagens pertencem a um serviço
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_id", nullable = false)
+    private ServiceModel service;
 
     @Column(nullable = false)
     private String url;
