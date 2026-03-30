@@ -1,4 +1,4 @@
-package com.plataforma.servicos.dto.MessageDTOS;
+package com.plataforma.servicos.dto.messageDTOS;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
