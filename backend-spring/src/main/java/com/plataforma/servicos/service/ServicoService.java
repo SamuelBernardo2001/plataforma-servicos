@@ -148,4 +148,26 @@ public class ServicoService {
         return serviceMapper.toResponseDTO(serviceRepository.save(service));
     }
 
+    // Desativa serviço (soft delete)
+    // Regra: apenas o próprio prestador pode desativar seu serviço
+    // Regra: serviço já desativado não pode ser desativado novamente
+    @Transactional
+    public void deactivate(UUID id, UUID prestadorId) {
+        ServiceModel service = serviceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Serviço não encontrado"));
+
+        if (!service.getPrestador().getId().equals(prestadorId)) {
+            throw new RuntimeException("Você não tem permissão para desativar este serviço");
+        }
+
+        if (Boolean.FALSE.equals(service.getAtivo())) {
+            throw new RuntimeException("Serviço já está desativado");
+        }
+
+        service.setAtivo(false);
+        service.setAtualizadoEm(LocalDateTime.now());
+
+        serviceRepository.save(service);
+    }
+
 }
