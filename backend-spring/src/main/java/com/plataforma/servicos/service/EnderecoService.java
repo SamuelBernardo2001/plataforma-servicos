@@ -1,5 +1,6 @@
 package com.plataforma.servicos.service;
 
+import com.plataforma.servicos.dto.EnderecoDTOS.EnderecoPatchDTO;
 import com.plataforma.servicos.dto.EnderecoDTOS.EnderecoRequestDTO;
 import com.plataforma.servicos.dto.EnderecoDTOS.EnderecoResponseDTO;
 import com.plataforma.servicos.entity.EnderecoModel;
@@ -108,6 +109,31 @@ public class EnderecoService {
         endereco.setBairro(dto.bairro());
         endereco.setCidade(dto.cidade());
         endereco.setEstado(dto.estado());
+        endereco.setAtualizadoEm(LocalDateTime.now());
+
+        return enderecoMapper.toResponseDTO(enderecoRepository.save(endereco));
+    }
+
+    // Atualiza campos individuais do endereço (edição parcial)
+    // Regra: usuário pode atualizar apenas um campo por vez
+    // Regra: campos não informados (null) não são alterados
+    // Por que isso? Usuário não precisa redigitar tudo para mudar apenas o número
+    @Transactional
+    public EnderecoResponseDTO patch(UUID usuarioId, EnderecoPatchDTO dto) {
+        userRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        EnderecoModel endereco = enderecoRepository.findByUserId(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Endereço não cadastrado"));
+
+        // Atualiza apenas os campos que foram informados (não nulos)
+        if (dto.cep() != null) endereco.setCep(dto.cep());
+        if (dto.logradouro() != null) endereco.setLogradouro(dto.logradouro());
+        if (dto.numero() != null) endereco.setNumero(dto.numero());
+        if (dto.complemento() != null) endereco.setComplemento(dto.complemento());
+        if (dto.bairro() != null) endereco.setBairro(dto.bairro());
+        if (dto.cidade() != null) endereco.setCidade(dto.cidade());
+        if (dto.estado() != null) endereco.setEstado(dto.estado());
         endereco.setAtualizadoEm(LocalDateTime.now());
 
         return enderecoMapper.toResponseDTO(enderecoRepository.save(endereco));
