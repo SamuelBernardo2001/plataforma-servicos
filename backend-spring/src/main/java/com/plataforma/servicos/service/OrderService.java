@@ -9,7 +9,9 @@ import com.plataforma.servicos.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,5 +34,17 @@ public class OrderService {
         }
 
         return serviceOrderMapper.toResponseDTO(order);
+    }
+
+    // Lista ordens do cliente
+    // Regra: cliente só vê suas próprias ordens
+    public List<ServiceOrderResponseDTO> findByCliente(UUID clienteId) {
+        userRepository.findById(clienteId)
+                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+
+        return serviceOrderRepository.findByClienteId(clienteId)
+                .stream()
+                .map(serviceOrderMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 }
