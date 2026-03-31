@@ -104,4 +104,32 @@ public class MessageService {
         return messageMapper.toResponseDTO(messageRepository.save(message));
     }
 
+    // Edita mensagem
+    // Regra: apenas o remetente pode editar sua própria mensagem
+    // Regra: mensagem não pode ser deletada — apenas editada
+    // Regra: marca como editada e registra quando foi editada
+    //        igual ao WhatsApp que mostra "editada" na mensagem
+    @Transactional
+    public MessageResponseDTO edit(UUID messageId, UUID remetenteId, String novoConteudo) {
+        MessageModel message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Mensagem não encontrada"));
+
+        // Apenas o remetente pode editar sua mensagem
+        if (!message.getRemetente().getId().equals(remetenteId)) {
+            throw new RuntimeException("Você não tem permissão para editar esta mensagem");
+        }
+
+        // Não permite editar mensagem em ordem finalizada
+        if (OrderStatusEnum.COMPLETED.equals(message.getServiceOrder().getStatus()) ||
+                OrderStatusEnum.CANCELED.equals(message.getServiceOrder().getStatus())) {
+            throw new RuntimeException("Não é possível editar mensagem em ordem finalizada");
+        }
+
+        message.setConteudo(novoConteudo);
+        message.setEditado(true); // Marca como editada — transparência para o receptor
+        message.setEditadoEm(LocalDateTime.now()); // Registra quando foi editada
+
+        return messageMapper.toResponseDTO(messageRepository.save(message));
+    }
+
 }
