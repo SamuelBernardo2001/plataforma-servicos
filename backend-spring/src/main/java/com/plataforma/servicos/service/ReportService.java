@@ -1,6 +1,7 @@
 package com.plataforma.servicos.service;
 
 import com.plataforma.servicos.dto.reportDTOS.ReportResponseDTO;
+import com.plataforma.servicos.entity.ReportStatusEnum;
 import com.plataforma.servicos.entity.UserENUM;
 import com.plataforma.servicos.entity.UserModel;
 import com.plataforma.servicos.mapper.ReportMapper;
@@ -34,6 +35,23 @@ public class ReportService {
         }
 
         return reportRepository.findAll()
+                .stream()
+                .map(reportMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Lista denúncias por status
+    // Regra: apenas ADMIN pode filtrar denúncias por status
+    // Usado para o ADMIN gerenciar denúncias pendentes separadas das resolvidas
+    public List<ReportResponseDTO> findByStatus(UUID adminId, ReportStatusEnum status) {
+        UserModel admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        if (!UserENUM.ADMIN.equals(admin.getPerfil())) {
+            throw new RuntimeException("Apenas administradores podem ver as denúncias");
+        }
+
+        return reportRepository.findByStatus(status)
                 .stream()
                 .map(reportMapper::toResponseDTO)
                 .collect(Collectors.toList());
