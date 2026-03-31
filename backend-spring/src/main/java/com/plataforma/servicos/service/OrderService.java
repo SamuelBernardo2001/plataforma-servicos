@@ -47,4 +47,17 @@ public class OrderService {
                 .map(serviceOrderMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
+
+    // Lista ordens recebidas pelo prestador
+    // Regra: prestador só vê suas próprias ordens recebidas
+    public List<ServiceOrderResponseDTO> findByPrestador(UUID prestadorId) {
+        userRepository.findById(prestadorId)
+                .orElseThrow(() -> new RuntimeException("Prestador não encontrado"));
+
+        return serviceOrderRepository.findByPrestadorId(prestadorId)
+                .stream()
+                .map(serviceOrderMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
 }
