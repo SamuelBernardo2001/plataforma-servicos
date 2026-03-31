@@ -30,7 +30,7 @@ public class ReportModel {
     @JoinColumn(name = "reported_user_id", nullable = false)
     private UserModel reportedUser;
 
-    // Uma denúncia pode estar vinculada a uma ordem (opcional)
+    // Uma denúncia pode estar vinculada a uma ordem
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_order_id")
     private ServiceOrderModel serviceOrder;
@@ -40,6 +40,15 @@ public class ReportModel {
 
     @Column(length = 1000)
     private String descricao;
+
+    // Status da denúncia controlado pelo ADMIN
+    // PENDENTE → aguardando análise
+    // RESOLVIDA → ADMIN tomou providências
+    // REJEITADA → ADMIN rejeitou por ser inválida
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    @Column(nullable = false)
+    private ReportStatusEnum status = ReportStatusEnum.PENDENTE;
 
     private LocalDateTime criadoEm;
 }
