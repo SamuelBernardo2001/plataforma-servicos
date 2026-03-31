@@ -91,4 +91,30 @@ public class ReportService {
 
         return reportMapper.toResponseDTO(reportRepository.save(report));
     }
+
+    // ADMIN resolve denúncia
+    // Regra: apenas ADMIN pode resolver
+    // Regra: denúncia já resolvida ou rejeitada não pode ser alterada
+    // Significa: denúncia era válida e ADMIN tomou providências
+    @Transactional
+    public ReportResponseDTO resolve(UUID reportId, UUID adminId) {
+        UserModel admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        if (!UserENUM.ADMIN.equals(admin.getPerfil())) {
+            throw new RuntimeException("Apenas administradores podem resolver denúncias");
+        }
+
+        ReportModel report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new RuntimeException("Denúncia não encontrada"));
+
+        // Denúncia já finalizada não pode ser alterada
+        if (!ReportStatusEnum.PENDENTE.equals(report.getStatus())) {
+            throw new RuntimeException("Apenas denúncias pendentes podem ser resolvidas");
+        }
+
+        report.setStatus(ReportStatusEnum.RESOLVIDA);
+
+        return reportMapper.toResponseDTO(reportRepository.save(report));
+    }
 }
