@@ -109,4 +109,20 @@ public class ReviewService {
 
         return reviewMapper.toResponseDTO(reviewRepository.save(review));
     }
+
+    // Cliente deleta sua própria avaliação
+    // Regra: apenas o próprio cliente que criou pode deletar
+    @Transactional
+    public void delete(UUID reviewId, UUID clienteId) {
+        ReviewModel review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Avaliação não encontrada"));
+
+        // Valida se o cliente é o dono da avaliação
+        if (!review.getUsuario().getId().equals(clienteId)) {
+            throw new RuntimeException("Você não tem permissão para deletar esta avaliação");
+        }
+
+        reviewRepository.delete(review);
+    }
+
 }
