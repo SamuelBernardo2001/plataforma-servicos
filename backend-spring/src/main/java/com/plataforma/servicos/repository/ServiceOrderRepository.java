@@ -23,4 +23,8 @@ public interface ServiceOrderRepository extends JpaRepository<ServiceOrderModel,
     // Busca ordens de um cliente para um serviço específico
     // Usado para validar ordem ativa e liberar avaliação
     List<ServiceOrderModel> findByClienteIdAndServiceId(UUID clienteId, UUID serviceId);
+
+    // Busca ordens entre um cliente e um prestador específico
+    // Usado no EnderecoService para validar se prestador pode ver endereço do cliente
+    List<ServiceOrderModel> findByClienteIdAndPrestadorId(UUID clienteId, UUID prestadorId);
 }
