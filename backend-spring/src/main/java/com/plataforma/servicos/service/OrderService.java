@@ -119,4 +119,55 @@ public class OrderService {
         return serviceOrderMapper.toResponseDTO(serviceOrderRepository.save(order));
     }
 
+    // Atualiza status da ordem
+    // Regra: apenas o prestador pode ACCEPTED ou CANCELED (quando REQUESTED)
+    // Regra: apenas o prestador pode marcar como COMPLETED (quando ACCEPTED)
+    // Regra: cliente pode CANCELED apenas quando REQUESTED
+    // Regra: ordem COMPLETED ou CANCELED não pode mudar de status
+    @Transactional
+    public ServiceOrderResponseDTO updateStatus(UUID id, UUID usuarioId, OrderStatusEnum novoStatus) {
+        ServiceOrderModel order = serviceOrderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ordem não encontrada"));
+
+        if (OrderStatusEnum.COMPLETED.equals(order.getStatus()) ||
+                OrderStatusEnum.CANCELED.equals(order.getStatus())) {
+            throw new RuntimeException("Ordem já finalizada não pode ter status alterado");
+        }
+
+        boolean isPrestador = order.getPrestador().getId().equals(usuarioId);
+        boolean isCliente = order.getCliente().getId().equals(usuarioId);
+
+        // Prestador pode aceitar ou cancelar ordem REQUESTED
+        if (isPrestador && OrderStatusEnum.REQUESTED.equals(order.getStatus())) {
+            if (!OrderStatusEnum.ACCEPTED.equals(novoStatus) &&
+                    !OrderStatusEnum.CANCELED.equals(novoStatus)) {
+                throw new RuntimeException("Prestador só pode ACEITAR ou CANCELAR ordem solicitada");
+            }
+        }
+
+        // Prestador pode completar ordem ACCEPTED
+        else if (isPrestador && OrderStatusEnum.ACCEPTED.equals(order.getStatus())) {
+            if (!OrderStatusEnum.COMPLETED.equals(novoStatus)) {
+                throw new RuntimeException("Prestador só pode COMPLETAR ordem aceita");
+            }
+            order.setConcluidoEm(LocalDateTime.now());
+        }
+
+        // Cliente pode cancelar apenas ordem REQUESTED
+        else if (isCliente && OrderStatusEnum.REQUESTED.equals(order.getStatus())) {
+            if (!OrderStatusEnum.CANCELED.equals(novoStatus)) {
+                throw new RuntimeException("Cliente só pode CANCELAR ordem solicitada");
+            }
+        }
+
+        else {
+            throw new RuntimeException("Você não tem permissão para alterar o status desta ordem");
+        }
+
+        order.setStatus(novoStatus);
+        order.setAtualizadoEm(LocalDateTime.now());
+
+        return serviceOrderMapper.toResponseDTO(serviceOrderRepository.save(order));
+    }
+
 }
