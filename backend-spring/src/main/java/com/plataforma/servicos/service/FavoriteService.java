@@ -1,14 +1,20 @@
 package com.plataforma.servicos.service;
 
 import com.plataforma.servicos.dto.favoriteDTOS.FavoriteResponseDTO;
+import com.plataforma.servicos.entity.FavoriteModel;
+import com.plataforma.servicos.entity.ServiceModel;
+import com.plataforma.servicos.entity.UserModel;
 import com.plataforma.servicos.mapper.FavoriteMapper;
 import com.plataforma.servicos.repository.FavoriteRepository;
 import com.plataforma.servicos.repository.ServiceRepository;
 import com.plataforma.servicos.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -41,4 +47,50 @@ public class FavoriteService {
                 .findByUsuarioIdAndServiceId(usuarioId, serviceId)
                 .isPresent();
     }
+
+    // Toggle de favorito (favorita/desfavorita)
+    // Regra: se já favoritou → desfavorita
+    // Regra: se não favoritou → favorita
+    // Regra: unicidade — um usuário só pode favoritar um serviço uma vez
+    // Regra: serviço deve estar ativo para ser favoritado
+    // Regra: usuário não pode favoritar seu próprio serviço
+    @Transactional
+    public String toggle(UUID usuarioId, UUID serviceId) {
+        UserModel usuario = userRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        ServiceModel service = serviceRepository.findById(serviceId)
+                .orElseThrow(() -> new RuntimeException("Serviço não encontrado"));
+
+        // Serviço inativo não pode ser favoritado
+        if (Boolean.FALSE.equals(service.getAtivo())) {
+            throw new RuntimeException("Serviço não está disponível");
+        }
+
+        // Usuário não pode favoritar seu próprio serviço
+        if (service.getPrestador().getId().equals(usuarioId)) {
+            throw new RuntimeException("Você não pode favoritar seu próprio serviço");
+        }
+
+        // Verifica se já existe o favorito
+        Optional<FavoriteModel> favoritoExistente = favoriteRepository
+                .findByUsuarioIdAndServiceId(usuarioId, serviceId);
+
+        // Se já favoritou → desfavorita
+        if (favoritoExistente.isPresent()) {
+            favoriteRepository.delete(favoritoExistente.get());
+            return "Serviço removido dos favoritos";
+        }
+
+        // Se não favoritou → favorita
+        FavoriteModel favorite = FavoriteModel.builder()
+                .usuario(usuario)
+                .service(service)
+                .criadoEm(LocalDateTime.now())
+                .build();
+
+        favoriteRepository.save(favorite);
+        return "Serviço adicionado aos favoritos";
+    }
 }
+
