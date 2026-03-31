@@ -125,4 +125,23 @@ public class ReviewService {
         reviewRepository.delete(review);
     }
 
+    // ADMIN remove avaliação inadequada
+    // Regra: apenas ADMIN pode usar este método
+    // Regra: usado para moderação do marketplace
+    @Transactional
+    public void deleteByAdmin(UUID reviewId, UUID adminId) {
+        UserModel admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        if (!UserENUM.ADMIN.equals(admin.getPerfil())) {
+            throw new RuntimeException("Apenas administradores podem remover avaliações");
+        }
+
+        ReviewModel review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Avaliação não encontrada"));
+
+        reviewRepository.delete(review);
+    }
+
+
 }
