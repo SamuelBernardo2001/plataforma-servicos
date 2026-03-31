@@ -1,6 +1,7 @@
 package com.plataforma.servicos.service;
 
 import com.plataforma.servicos.dto.serviceOrderDTOS.ServiceOrderResponseDTO;
+import com.plataforma.servicos.entity.OrderStatusEnum;
 import com.plataforma.servicos.entity.ServiceOrderModel;
 import com.plataforma.servicos.mapper.ServiceOrderMapper;
 import com.plataforma.servicos.repository.ServiceOrderRepository;
@@ -55,6 +56,15 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Prestador não encontrado"));
 
         return serviceOrderRepository.findByPrestadorId(prestadorId)
+                .stream()
+                .map(serviceOrderMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Lista ordens por status
+    // Regra: apenas o próprio usuário pode ver suas ordens por status
+    public List<ServiceOrderResponseDTO> findByStatus(UUID usuarioId, OrderStatusEnum status) {
+        return serviceOrderRepository.findByClienteIdAndStatus(usuarioId, status)
                 .stream()
                 .map(serviceOrderMapper::toResponseDTO)
                 .collect(Collectors.toList());
