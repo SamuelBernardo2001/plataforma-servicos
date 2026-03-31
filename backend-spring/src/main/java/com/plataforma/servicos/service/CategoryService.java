@@ -67,4 +67,32 @@ public class CategoryService {
 
         return categoryMapper.toResponseDTO(categoryRepository.save(category));
     }
+
+    // Edita nome ou descrição de uma categoria
+    // Regra: apenas ADMIN pode editar categoria
+    // Regra: novo nome deve ser único se for diferente do atual
+    @Transactional
+    public CategoryResponseDTO update(UUID id, UUID adminId, CategoryRequestDTO dto) {
+        UserModel admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        if (!UserENUM.ADMIN.equals(admin.getPerfil())) {
+            throw new RuntimeException("Apenas administradores podem editar categorias");
+        }
+
+        CategoryModel category = categoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+
+        // Verifica unicidade do nome apenas se foi alterado
+        if (!category.getNome().equals(dto.nome()) &&
+                categoryRepository.findByNome(dto.nome()).isPresent()) {
+            throw new RuntimeException("Já existe uma categoria com esse nome");
+        }
+
+        category.setNome(dto.nome());
+        category.setDescricao(dto.descricao());
+        category.setAtualizadoEm(LocalDateTime.now());
+
+        return categoryMapper.toResponseDTO(categoryRepository.save(category));
+    }
 }
