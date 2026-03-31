@@ -95,4 +95,35 @@ public class CategoryService {
 
         return categoryMapper.toResponseDTO(categoryRepository.save(category));
     }
+
+    // Desativa categoria (soft delete)
+    // Regra: apenas ADMIN pode desativar categoria
+    // Regra: categoria já desativada não pode ser desativada novamente
+    // Regra: serviços que usavam essa categoria ficam pendentes —
+    //        prestador precisará cadastrar uma nova categoria para o serviço
+    @Transactional
+    public void deactivate(UUID id, UUID adminId) {
+        UserModel admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        if (!UserENUM.ADMIN.equals(admin.getPerfil())) {
+            throw new RuntimeException("Apenas administradores podem desativar categorias");
+        }
+
+        CategoryModel category = categoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+
+        if (Boolean.FALSE.equals(category.getAtivo())) {
+            throw new RuntimeException("Categoria já está desativada");
+        }
+
+        // Desativa a categoria — serviços vinculados ficam pendentes
+        // O prestador receberá notificação para atualizar a categoria
+        // do seu serviço (será implementado no M8 — Observabilidade)
+        category.setAtivo(false);
+        category.setAtualizadoEm(LocalDateTime.now());
+
+        categoryRepository.save(category);
+    }
 }
+
