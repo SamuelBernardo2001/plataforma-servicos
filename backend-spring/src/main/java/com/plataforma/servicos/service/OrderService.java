@@ -1,15 +1,17 @@
 package com.plataforma.servicos.service;
 
+import com.plataforma.servicos.dto.serviceOrderDTOS.ServiceOrderRequestDTO;
 import com.plataforma.servicos.dto.serviceOrderDTOS.ServiceOrderResponseDTO;
-import com.plataforma.servicos.entity.OrderStatusEnum;
-import com.plataforma.servicos.entity.ServiceOrderModel;
+import com.plataforma.servicos.entity.*;
 import com.plataforma.servicos.mapper.ServiceOrderMapper;
 import com.plataforma.servicos.repository.ServiceOrderRepository;
 import com.plataforma.servicos.repository.ServiceRepository;
 import com.plataforma.servicos.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -68,6 +70,53 @@ public class OrderService {
                 .stream()
                 .map(serviceOrderMapper::toResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    // Cria nova ordem de serviço (contratação)
+    // Regra: apenas CLIENTE pode criar ordem
+    // Regra: serviço deve estar ativo
+    // Regra: cliente não pode contratar seu próprio serviço
+    // Regra: cliente não pode ter ordem REQUESTED ou ACCEPTED para o mesmo serviço
+    @Transactional
+    public ServiceOrderResponseDTO create(UUID clienteId, ServiceOrderRequestDTO dto) {
+        UserModel cliente = userRepository.findById(clienteId)
+                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+
+        if (!UserENUM.CLIENTE.equals(cliente.getPerfil())) {
+            throw new RuntimeException("Apenas clientes podem criar ordens de serviço");
+        }
+
+        ServiceModel service = serviceRepository.findById(dto.serviceId())
+                .orElseThrow(() -> new RuntimeException("Serviço não encontrado"));
+
+        if (Boolean.FALSE.equals(service.getAtivo())) {
+            throw new RuntimeException("Serviço não está disponível");
+        }
+
+        if (service.getPrestador().getId().equals(clienteId)) {
+            throw new RuntimeException("Você não pode contratar seu próprio serviço");
+        }
+
+        // Verifica se já existe ordem ativa para esse serviço
+        boolean ordemAtiva = serviceOrderRepository
+                .findByClienteIdAndServiceId(clienteId, dto.serviceId())
+                .stream()
+                .anyMatch(o -> o.getStatus().equals(OrderStatusEnum.REQUESTED) ||
+                        o.getStatus().equals(OrderStatusEnum.ACCEPTED));
+
+        if (ordemAtiva) {
+            throw new RuntimeException("Você já possui uma ordem ativa para este serviço");
+        }
+
+        ServiceOrderModel order = serviceOrderMapper.toModel(dto);
+        order.setCliente(cliente);
+        order.setPrestador(service.getPrestador());
+        order.setService(service);
+        order.setStatus(OrderStatusEnum.REQUESTED);
+        order.setCriadoEm(LocalDateTime.now());
+        order.setAtualizadoEm(LocalDateTime.now());
+
+        return serviceOrderMapper.toResponseDTO(serviceOrderRepository.save(order));
     }
 
 }
