@@ -87,4 +87,26 @@ public class ReviewService {
 
         return reviewMapper.toResponseDTO(reviewRepository.save(review));
     }
+
+    // Edita avaliação existente
+    // Regra: apenas o próprio cliente que criou pode editar
+    // Regra: não é possível editar avaliação de outro usuário
+    // Regra: nota deve continuar entre 1 e 5 — validado no DTO
+    @Transactional
+    public ReviewResponseDTO update(UUID reviewId, UUID clienteId, ReviewRequestDTO dto) {
+        ReviewModel review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Avaliação não encontrada"));
+
+        // Valida se o cliente é o dono da avaliação
+        if (!review.getUsuario().getId().equals(clienteId)) {
+            throw new RuntimeException("Você não tem permissão para editar esta avaliação");
+        }
+
+        review.setClassificacao(dto.rating());
+        review.setComentario(dto.comentario());
+        review.setEditado(true); // Marca como editada para transparência
+        review.setEditadoEm(LocalDateTime.now()); // Registra quando foi editada
+
+        return reviewMapper.toResponseDTO(reviewRepository.save(review));
+    }
 }
