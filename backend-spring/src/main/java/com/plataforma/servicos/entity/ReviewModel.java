@@ -41,5 +41,14 @@ public class ReviewModel {
     @Column(length = 1000)
     private String comentario;
 
+    // Indica se a avaliação foi editada pelo cliente
+    // Mostra transparência para o prestador e outros clientes
+    @Builder.Default
+    private Boolean editado = false;
+
+    // Data da última edição da avaliação
+    // Null se nunca foi editada
+    private LocalDateTime editadoEm;
+
     private LocalDateTime criadoEm;
 }
