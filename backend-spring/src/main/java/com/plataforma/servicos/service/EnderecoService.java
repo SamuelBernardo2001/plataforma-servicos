@@ -138,4 +138,17 @@ public class EnderecoService {
 
         return enderecoMapper.toResponseDTO(enderecoRepository.save(endereco));
     }
+
+    // Deleta endereço do usuário
+    // Regra: usuário só pode deletar seu próprio endereço
+    @Transactional
+    public void delete(UUID usuarioId) {
+        userRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        EnderecoModel endereco = enderecoRepository.findByUserId(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Endereço não cadastrado"));
+
+        enderecoRepository.delete(endereco);
+    }
 }
