@@ -13,6 +13,10 @@ public record MessageResponseDTO(
         String receiverNome,
         String conteudo,
         Boolean lida,
+        // Indica se mensagem foi editada — receptor sabe que foi modificada
+        Boolean editado,
+        // Data da edição — null se nunca foi editada
+        LocalDateTime editadoEm,
         LocalDateTime enviadoEm
 
 ) { }
