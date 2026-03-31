@@ -170,4 +170,13 @@ public class OrderService {
         return serviceOrderMapper.toResponseDTO(serviceOrderRepository.save(order));
     }
 
+    // Verifica se existe ordem COMPLETED entre cliente e serviço
+    // Usado pelo ReviewService para validar se cliente pode avaliar
+    public boolean existeOrdemConcluida(UUID clienteId, UUID serviceId) {
+        return serviceOrderRepository
+                .findByClienteIdAndServiceId(clienteId, serviceId)
+                .stream()
+                .anyMatch(o -> OrderStatusEnum.COMPLETED.equals(o.getStatus()));
+    }
+
 }
