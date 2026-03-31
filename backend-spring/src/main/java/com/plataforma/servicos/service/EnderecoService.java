@@ -88,4 +88,28 @@ public class EnderecoService {
 
         return enderecoMapper.toResponseDTO(enderecoRepository.save(endereco));
     }
+
+    // Atualiza endereço completo do usuário
+    // Regra: usuário só pode atualizar seu próprio endereço
+    // Regra: todos os campos são atualizados de uma vez
+    @Transactional
+    public EnderecoResponseDTO update(UUID usuarioId, EnderecoRequestDTO dto) {
+        userRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        EnderecoModel endereco = enderecoRepository.findByUserId(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Endereço não cadastrado"));
+
+        // Atualiza todos os campos de uma vez
+        endereco.setCep(dto.cep());
+        endereco.setLogradouro(dto.logradouro());
+        endereco.setNumero(dto.numero());
+        endereco.setComplemento(dto.complemento());
+        endereco.setBairro(dto.bairro());
+        endereco.setCidade(dto.cidade());
+        endereco.setEstado(dto.estado());
+        endereco.setAtualizadoEm(LocalDateTime.now());
+
+        return enderecoMapper.toResponseDTO(enderecoRepository.save(endereco));
+    }
 }
