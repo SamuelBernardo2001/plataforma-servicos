@@ -20,6 +20,7 @@ public class ReportMapper {
                 report.getServiceOrder() != null ? report.getServiceOrder().getId() : null,
                 report.getRazao(),
                 report.getDescricao(),
+                report.getStatus(),       // adicionado
                 report.getCriadoEm()
         );
     }

@@ -19,6 +19,8 @@ public class MessageMapper {
                 message.getReceptor() != null ? message.getReceptor().getNome() : null,
                 message.getConteudo(),
                 message.getLer(),
+                message.getEditado(),     // adicionado
+                message.getEditadoEm(),   // adicionado
                 message.getEnviadoEm()
         );
     }

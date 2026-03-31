@@ -19,6 +19,8 @@ public class ReviewMapper {
                 review.getUsuario() != null ? review.getUsuario().getNome() : null,
                 review.getClassificacao(),
                 review.getComentario(),
+                review.getEditado(),      // adicionado
+                review.getEditadoEm(),    // adicionado
                 review.getCriadoEm()
         );
     }
