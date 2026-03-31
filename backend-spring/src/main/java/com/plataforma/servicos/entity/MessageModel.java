@@ -41,5 +41,14 @@ public class MessageModel {
     @Column(nullable = false)
     private Boolean ler;
 
+    // Indica se a mensagem foi editada pelo remetente
+    // Mostra "editado" ao lado da mensagem no frontend se true
+    @Builder.Default
+    private Boolean editado = false;
+
+    // Data e hora da última edição da mensagem
+    // Null se a mensagem nunca foi editada
+    private LocalDateTime editadoEm;
+
     private LocalDateTime enviadoEm;
 }
