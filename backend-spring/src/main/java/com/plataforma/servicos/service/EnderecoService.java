@@ -1,15 +1,19 @@
 package com.plataforma.servicos.service;
 
+import com.plataforma.servicos.dto.EnderecoDTOS.EnderecoRequestDTO;
 import com.plataforma.servicos.dto.EnderecoDTOS.EnderecoResponseDTO;
 import com.plataforma.servicos.entity.EnderecoModel;
 import com.plataforma.servicos.entity.OrderStatusEnum;
+import com.plataforma.servicos.entity.UserModel;
 import com.plataforma.servicos.mapper.EnderecoMapper;
 import com.plataforma.servicos.repository.EnderecoRepository;
 import com.plataforma.servicos.repository.ServiceOrderRepository;
 import com.plataforma.servicos.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -56,5 +60,32 @@ public class EnderecoService {
                 .orElseThrow(() -> new RuntimeException("Cliente não possui endereço cadastrado"));
 
         return enderecoMapper.toResponseDTO(endereco);
+    }
+
+    // Cadastra endereço após criação da conta
+    // Regra: usuário deve estar ativo
+    // Regra: usuário só pode ter um endereço — unicidade
+    @Transactional
+    public EnderecoResponseDTO create(UUID usuarioId, EnderecoRequestDTO dto) {
+        UserModel usuario = userRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        if (Boolean.FALSE.equals(usuario.getAtivo())) {
+            throw new RuntimeException("Usuário inativo não pode cadastrar endereço");
+        }
+
+        // Unicidade — um usuário só pode ter um endereço cadastrado
+        if (enderecoRepository.findByUserId(usuarioId).isPresent()) {
+            throw new RuntimeException(
+                    "Usuário já possui endereço cadastrado — use a opção de editar"
+            );
+        }
+
+        EnderecoModel endereco = enderecoMapper.toModel(dto);
+        endereco.setUser(usuario);
+        endereco.setCriadoEm(LocalDateTime.now());
+        endereco.setAtualizadoEm(LocalDateTime.now());
+
+        return enderecoMapper.toResponseDTO(enderecoRepository.save(endereco));
     }
 }
