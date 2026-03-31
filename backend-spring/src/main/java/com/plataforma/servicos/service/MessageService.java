@@ -132,4 +132,28 @@ public class MessageService {
         return messageMapper.toResponseDTO(messageRepository.save(message));
     }
 
+    // Marca mensagens como lidas
+    // Regra: apenas o receptor pode marcar mensagens como lidas
+    // Usado quando o usuário abre o chat — marca todas as não lidas como lidas
+    // Igual ao WhatsApp que marca como lida quando você abre a conversa
+    @Transactional
+    public void marcarComoLida(UUID ordemId, UUID usuarioId) {
+        ServiceOrderModel ordem = serviceOrderRepository.findById(ordemId)
+                .orElseThrow(() -> new RuntimeException("Ordem não encontrada"));
+
+        // Busca todas as mensagens não lidas onde o usuário é o receptor
+        // e marca todas como lidas de uma vez — igual ao WhatsApp
+        messageRepository
+                .findByServiceOrderIdOrderByEnviadoEmAsc(
+                        ordemId,
+                        PageRequest.of(0, Integer.MAX_VALUE)
+                )
+                .forEach(msg -> {
+                    if (msg.getReceptor().getId().equals(usuarioId) &&
+                            Boolean.FALSE.equals(msg.getLer())) {
+                        msg.setLer(true);
+                        messageRepository.save(msg);
+                    }
+                });
+    }
 }
