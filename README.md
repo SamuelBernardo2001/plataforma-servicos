@@ -1,190 +1,179 @@
-# Plataforma de Serviços
-
-Marketplace de serviços locais que conecta prestadores (construção, barbearia, elétrica, etc.) a clientes com contratação, avaliações e histórico real.
-
-## Tecnologias
-
-**Backend**
-- Java 17 + Spring Boot 3.2
-- MySQL + Flyway
-- Spring Security + JWT
-
-**Frontend**
-- Angular 17
-- TypeScript
-- SCSS
-
-**Infraestrutura**
-- Docker + Docker Compose
-- GitHub Actions (CI/CD)
-
-## Estrutura do Projeto
-```
-plataforma-servicos/
-├── backend-spring/     # API REST Java/Spring Boot
-├── frontend-angular/   # App Angular
-├── database/           # Migrations e seeds
-├── docker/             # Configurações Docker
-├── docs/               # Documentação
-└── .github/workflows/  # CI/CD
-```
-
-## Como rodar localmente
-
-### Pré-requisitos
-- Java 17+
-- Node.js 18+
-- Docker
-
-### Backend
-```bash
-cd backend-spring
-mvn spring-boot:run
-```
-
-### Frontend
-```bash
-cd frontend-angular/plataforma
-ng serve
-```
-
 ## Status do Projeto
 🚧 Em desenvolvimento
 
-M2 – Camada de Domínio Concluída
+---
+
+### ✅ M2 – Camada de Domínio Concluída
 
 Foi estruturada a base arquitetural do backend seguindo separação por camadas:
 
-Pacotes criados:
-
-controller → Responsável por receber requisições HTTP
-
-service → Regras de negócio da aplicação
-
-repository → Camada de acesso a dados (preparada para JPA)
-
-entity → Modelos de domínio (modelo puro)
-
-dto → Objetos de transferência de dados
-
-security → Estrutura preparada para autenticação JWT
-
-config → Configurações gerais (CORS, beans futuros, etc.)
-
-exception → Tratamento global de erros (base preparada)
-
-mapper → Conversão entre Entity ↔ DTO
-
-util → Classes utilitárias e helpers
-
-📦 Entidades de Domínio Implementadas
-
-Modelagem completa do núcleo do sistema:
-
-User
-
-Category
-
-Service
-
-ServiceOrder
-
-Review
-
-Favorite
-
-ServiceImage
-
-Report
-
-Message
-
-OrderStatus (enum)
-
-Nesta etapa foi criado o modelo de domínio puro, sem dependência de JPA, garantindo desacoplamento e base sólida para a próxima fase.
-
-🔜 Próximo Módulo
-
-M3 – Integração com banco de dados utilizando Spring Data JPA.
-
-Foi realizada a implementação completa da camada de persistência do sistema, integrando o backend com banco de dados relacional.
-
-🐳 Banco de Dados
-
-Configuração do MySQL utilizando Docker
-
-Criação do ambiente isolado com docker-compose
-
-Banco plataforma_servicos inicializado com sucesso
-
-🧩 Integração com Spring Boot
-
-Configuração do datasource no application.properties
-
-Conexão com banco utilizando HikariCP
-
-Projeto conectado com sucesso ao MySQL
-
-🗄️ JPA (Hibernate)
-
-Conversão parcial das entidades para JPA:
-
-UserModel → @Entity, @Table, @Id
-
-ServiceModel → @Entity, @Table, @Id
-
-✔ Uso de jakarta.persistence
-✔ Mapeamento de colunas com @Column
-✔ Estrutura preparada para relacionamentos futuros
-
-📁 Repositórios
-
-Criação dos repositórios com Spring Data JPA:
-
-UserRepository
-
-ServiceRepository
-
-🐘 Flyway (Migrations)
-
-Criação do versionamento do banco de dados com Flyway.
-
-Migrations criadas:
-
-V1__create_table_users
-
-V2__create_table_categories
-
-V3__create_table_services
-
-V4__create_table_service_images
-
-V5__create_table_service_orders
-
-V6__create_table_reviews
-
-V7__create_table_favorites
-
-✔ Execução automática ao subir o projeto
-✔ Controle de versão do banco ativo
-✔ Histórico salvo em flyway_schema_history
-
-🧪 Resultado
-
-✔ Projeto compila com sucesso (BUILD SUCCESS)
-
-✔ Spring Boot inicia corretamente
-
-✔ Flyway executa as migrations
-
-✔ 7 tabelas criadas no banco
-
-✔ Integração com banco funcionando
-
-⚠️ Observações
-
-IDs estão sendo armazenados como UUID (BINARY(16))
-
-Migrations não devem ser alteradas após execução
-
-Novas alterações devem ser feitas em novas versões (V8, V9...)
+**Pacotes criados:**
+- `controller` → Responsável por receber requisições HTTP
+- `service` → Regras de negócio da aplicação
+- `repository` → Camada de acesso a dados (preparada para JPA)
+- `entity` → Modelos de domínio (modelo puro)
+- `dto` → Objetos de transferência de dados
+- `security` → Estrutura preparada para autenticação JWT
+- `config` → Configurações gerais (CORS, beans futuros, etc.)
+- `exception` → Tratamento global de erros (base preparada)
+- `mapper` → Conversão entre Entity ↔ DTO
+- `util` → Classes utilitárias e helpers
+
+**📦 Entidades de Domínio Implementadas:**
+- UserModel + UserENUM (CLIENTE, PRESTADOR, ADMIN)
+- CategoryModel
+- ServiceModel
+- ServiceOrderModel + OrderStatusEnum (REQUESTED, ACCEPTED, COMPLETED, CANCELED)
+- ReviewModel
+- FavoriteModel
+- ServiceImageModel
+- ReportModel + ReportStatusEnum (PENDENTE, RESOLVIDA, REJEITADA)
+- MessageModel
+- EnderecoModel
+
+---
+
+### ✅ M3 – Persistência + Banco de Dados Concluída
+
+Foi realizada a implementação completa da camada de persistência
+do sistema, integrando o backend com banco de dados relacional.
+
+**🐳 Banco de Dados:**
+- Configuração do MySQL utilizando Docker
+- Criação do ambiente isolado com docker-compose
+- Banco `plataforma_servicos` inicializado com sucesso
+- MySQL rodando na porta 3307
+
+**🧩 Integração com Spring Boot:**
+- Configuração do datasource no `application.properties`
+- Conexão com banco utilizando HikariCP
+- Projeto conectado com sucesso ao MySQL
+
+**🗄️ JPA (Hibernate):**
+- Todas as entidades convertidas para JPA com `@Entity`, `@Table`, `@Id`
+- Relacionamentos mapeados com `@ManyToOne`, `@OneToMany`, `@OneToOne`
+- Todos os relacionamentos usando `FetchType.LAZY`
+- Enums salvos como texto com `@Enumerated(EnumType.STRING)`
+- UUIDs como identificadores com `GenerationType.UUID`
+
+**📁 Repositórios criados:**
+- UserRepository
+- CategoryRepository
+- ServiceRepository
+- ServiceImageRepository
+- ServiceOrderRepository
+- ReviewRepository
+- FavoriteRepository
+- ReportRepository
+- MessageRepository
+- EnderecoRepository
+
+**🐘 Flyway (Migrations):**
+- V1__create_table_users
+- V2__create_table_categories
+- V3__create_table_services
+- V4__create_table_service_images
+- V5__create_table_service_orders
+- V6__create_table_reviews
+- V7__create_table_favorites
+- V8__create_table_enderecos
+
+---
+
+### ✅ M4 – Validação + DTOs + Service Layer Concluída
+
+Foi implementada a camada de validação, transferência de dados
+e regras de negócio completas do sistema.
+
+**📦 DTOs criados como Java Records:**
+
+*UserDTOS/*
+- `UserRequestDTO` → cadastro com validações
+- `UserResponseDTO` → retorno sem senha
+- `UserUpdateDTO` → atualizar nome e telefone
+- `UserPasswordDTO` → alterar senha com confirmação
+- `UserLoginDTO` → autenticação
+
+*ServiceDTOS/*
+- `ServiceRequestDTO` → cadastro com validações
+- `ServiceResponseDTO` → retorno completo
+
+*CategoryDTOS/*
+- `CategoryRequestDTO`
+- `CategoryResponseDTO`
+
+*ServiceOrderDTOS/*
+- `ServiceOrderRequestDTO`
+- `ServiceOrderResponseDTO`
+
+*ReviewDTOS/*
+- `ReviewRequestDTO` → com @Min(1) e @Max(5) no rating
+- `ReviewResponseDTO` → com campos editado e editadoEm
+
+*FavoriteDTOS/*
+- `FavoriteRequestDTO`
+- `FavoriteResponseDTO`
+
+*ReportDTOS/*
+- `ReportRequestDTO`
+- `ReportResponseDTO` → com status da denúncia
+
+*MessageDTOS/*
+- `MessageRequestDTO`
+- `MessageResponseDTO` → com campos editado e editadoEm
+
+*EnderecoDTOS/*
+- `EnderecoRequestDTO` → cadastro completo
+- `EnderecoResponseDTO`
+- `EnderecoPatchDTO` → edição parcial campo por campo
+
+**🔄 Mappers criados:**
+- UserMapper
+- CategoryMapper
+- ServiceMapper
+- ServiceOrderMapper
+- ReviewMapper
+- FavoriteMapper
+- ReportMapper
+- MessageMapper
+- EnderecoMapper
+
+**⚙️ Services criados com regras de negócio:**
+
+- `UserService` → buscar, criar, atualizar, trocar senha, desativar
+- `ServiceService` → listar (público/prestador), criar só PRESTADOR,
+  atualizar, desativar, calcular média de avaliações
+- `OrderService` → criar ordem, fluxo completo de status,
+  listar por cliente/prestador, validar ordem concluída para avaliação
+- `ReviewService` → avaliar só após COMPLETED, sem duplicata,
+  editar, deletar, ADMIN modera
+- `FavoriteService` → toggle com unicidade, verificar favorito,
+  impede favoritar próprio serviço
+- `CategoryService` → CRUD completo apenas ADMIN,
+  unicidade de nome, serviços ficam pendentes ao desativar
+- `EnderecoService` → cadastrar após conta criada, atualização
+  completa e parcial, privacidade do endereço do cliente
+  (prestador vê só com ordem ACCEPTED, some após COMPLETED)
+- `ReportService` → criar denúncia, ADMIN resolve ou rejeita,
+  filtrar por status
+- `MessageService` → chat paginado (20 por página) igual WhatsApp,
+  enviar, editar mensagem, marcar como lida
+
+**🔒 Regras de negócio implementadas:**
+- Apenas PRESTADOR pode cadastrar serviços
+- Apenas CLIENTE pode criar ordens de serviço
+- Cliente não pode contratar seu próprio serviço
+- Avaliação só após ordem COMPLETED
+- Um cliente avalia um serviço apenas uma vez
+- Endereço do cliente visível ao prestador só com ordem ACCEPTED
+- Endereço some após ordem COMPLETED — privacidade
+- Soft delete em usuários, serviços e categorias
+- Toggle de favoritos com unicidade
+- Apenas ADMIN cria, edita e desativa categorias
+- Apenas ADMIN modera denúncias e avaliações
+
+---
+
+### 🔜 Próximo Módulo
+**M5 – API REST** — Controllers + endpoints padronizados
+com `ApiResponse`, paginação obrigatória e versionamento `/api/v1/`
