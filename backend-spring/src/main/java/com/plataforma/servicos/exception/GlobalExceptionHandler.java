@@ -93,4 +93,21 @@ public class GlobalExceptionHandler {
                         HttpStatus.INTERNAL_SERVER_ERROR.value()
                 ));
     }
+
+    // Trata Exception — qualquer outro erro não tratado acima
+    // Última linha de defesa — captura tudo que passou pelos outros handlers
+    // Status 500 → Internal Server Error
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Void>> handleGenericException(
+            Exception ex,
+            HttpServletRequest request) {
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error(
+                        "Erro interno do servidor",
+                        "INTERNAL_ERROR",
+                        HttpStatus.INTERNAL_SERVER_ERROR.value()
+                ));
+    }
 }
