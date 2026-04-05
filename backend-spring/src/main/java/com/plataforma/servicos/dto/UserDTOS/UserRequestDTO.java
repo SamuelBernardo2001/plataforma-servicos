@@ -4,6 +4,7 @@ import com.plataforma.servicos.entity.UserENUM;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 public record UserRequestDTO(
 
@@ -18,6 +19,7 @@ public record UserRequestDTO(
         String email,
 
         @NotBlank(message = "A senha é obrigatória")
+        @Size(min = 6, message = "A senha deve conter no mínimo 6 caracteres")
         String senha,
 
         @NotBlank(message = "O telefone é obrigatório")
