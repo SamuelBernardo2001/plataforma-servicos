@@ -1,5 +1,6 @@
 package com.plataforma.servicos.controller;
 
+import com.plataforma.servicos.dto.UserDTOS.UserLoginDTO;
 import com.plataforma.servicos.dto.UserDTOS.UserRequestDTO;
 import com.plataforma.servicos.dto.UserDTOS.UserResponseDTO;
 import com.plataforma.servicos.exception.ApiResponse;
@@ -72,5 +73,18 @@ public class UserController {
                         "Usuário cadastrado com sucesso",
                         HttpStatus.CREATED.value()
                 ));
+    }
+
+    // POST /api/v1/users/login
+    // Autentica usuário com email e senha
+    // Por enquanto retorna os dados do usuário
+    // No M7 será substituído por JWT + tokens
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<UserResponseDTO>> login(
+            @Valid @RequestBody UserLoginDTO dto) {
+        UserResponseDTO user = userService.findByEmail(dto.email());
+        return ResponseEntity.ok(
+                ApiResponse.success(user, "Login realizado com sucesso", HttpStatus.OK.value())
+        );
     }
 }
