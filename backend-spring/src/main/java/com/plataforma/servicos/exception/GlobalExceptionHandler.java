@@ -59,4 +59,21 @@ public class GlobalExceptionHandler {
                         HttpStatus.BAD_REQUEST.value()
                 ));
     }
+
+    // Trata IllegalArgumentException — argumentos inválidos
+    // Ex: UUID em formato inválido na URL
+    // Status 400 → Bad Request
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalArgumentException(
+            IllegalArgumentException ex,
+            HttpServletRequest request) {
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(
+                        ex.getMessage(),
+                        "INVALID_ARGUMENT",
+                        HttpStatus.BAD_REQUEST.value()
+                ));
+    }
 }
