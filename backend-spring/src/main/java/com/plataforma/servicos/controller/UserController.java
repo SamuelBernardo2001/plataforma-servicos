@@ -7,10 +7,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 // @RestController → combina @Controller + @ResponseBody
 // Indica que essa classe é um Controller REST
@@ -37,6 +39,18 @@ public class UserController {
         List<UserResponseDTO> users = userService.findAll();
         return ResponseEntity.ok(
                 ApiResponse.success(users, "Usuários listados com sucesso", HttpStatus.OK.value())
+        );
+    }
+
+    // GET /api/users/{id}
+    // Busca um usuário específico pelo ID
+    // Regra: usuário desativado não é encontrado
+    // Quem usa: qualquer usuário autenticado (M7 controlará acesso por role)
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserResponseDTO>> findById(@PathVariable UUID id) {
+        UserResponseDTO user = userService.findById(id);
+        return ResponseEntity.ok(
+                ApiResponse.success(user, "Usuário encontrado", HttpStatus.OK.value())
         );
     }
 }
