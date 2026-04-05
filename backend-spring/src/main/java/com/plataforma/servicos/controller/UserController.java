@@ -3,6 +3,7 @@ package com.plataforma.servicos.controller;
 import com.plataforma.servicos.dto.UserDTOS.UserLoginDTO;
 import com.plataforma.servicos.dto.UserDTOS.UserRequestDTO;
 import com.plataforma.servicos.dto.UserDTOS.UserResponseDTO;
+import com.plataforma.servicos.dto.UserDTOS.UserUpdateDTO;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.UserService;
 import jakarta.validation.Valid;
@@ -75,7 +76,7 @@ public class UserController {
                 ));
     }
 
-    // POST /api/v1/users/login
+    // POST /api/users/login
     // Autentica usuário com email e senha
     // Por enquanto retorna os dados do usuário
     // No M7 será substituído por JWT + tokens
@@ -85,6 +86,21 @@ public class UserController {
         UserResponseDTO user = userService.findByEmail(dto.email());
         return ResponseEntity.ok(
                 ApiResponse.success(user, "Login realizado com sucesso", HttpStatus.OK.value())
+        );
+    }
+
+    // PUT /api/users/{id}/profile
+    // Atualiza nome e telefone do usuário
+    // Regra: apenas nome e telefone podem ser alterados
+    // Regra: email e perfil não mudam após cadastro
+    // @Valid → valida UserUpdateDTO (@NotBlank nos campos)
+    @PutMapping("/{id}/profile")
+    public ResponseEntity<ApiResponse<UserResponseDTO>> update(
+            @PathVariable UUID id,
+            @Valid @RequestBody UserUpdateDTO dto) {
+        UserResponseDTO user = userService.update(id, dto);
+        return ResponseEntity.ok(
+                ApiResponse.success(user, "Perfil atualizado com sucesso", HttpStatus.OK.value())
         );
     }
 }
