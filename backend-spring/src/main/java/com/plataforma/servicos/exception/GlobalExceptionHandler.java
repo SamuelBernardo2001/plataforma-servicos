@@ -76,4 +76,21 @@ public class GlobalExceptionHandler {
                         HttpStatus.BAD_REQUEST.value()
                 ));
     }
+
+    // Trata NullPointerException — erros inesperados de null
+    // Não deveria acontecer em produção mas é bom ter tratamento
+    // Status 500 → Internal Server Error
+    @ExceptionHandler(NullPointerException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNullPointerException(
+            NullPointerException ex,
+            HttpServletRequest request) {
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error(
+                        "Erro interno do servidor",
+                        "INTERNAL_ERROR",
+                        HttpStatus.INTERNAL_SERVER_ERROR.value()
+                ));
+    }
 }
