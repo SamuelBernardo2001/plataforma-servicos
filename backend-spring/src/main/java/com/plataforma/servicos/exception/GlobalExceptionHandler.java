@@ -7,6 +7,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.stream.Collectors;
 
@@ -108,6 +109,30 @@ public class GlobalExceptionHandler {
                         "Erro interno do servidor",
                         "INTERNAL_ERROR",
                         HttpStatus.INTERNAL_SERVER_ERROR.value()
+                ));
+    }
+
+    // Trata erros de conversão de tipo na URL
+// Ex: passar {id} literal em vez de um UUID real
+// Ex: passar "abc" em vez de um UUID válido
+// Status 400 → Bad Request
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<Void>> handleTypeMismatchException(
+            MethodArgumentTypeMismatchException ex,
+            HttpServletRequest request) {
+
+        String message = String.format(
+                "Valor inválido para o parâmetro '%s' — esperado: %s",
+                ex.getName(),
+                ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "tipo desconhecido"
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(
+                        message,
+                        "INVALID_PARAMETER",
+                        HttpStatus.BAD_REQUEST.value()
                 ));
     }
 }
