@@ -1,9 +1,6 @@
 package com.plataforma.servicos.controller;
 
-import com.plataforma.servicos.dto.UserDTOS.UserLoginDTO;
-import com.plataforma.servicos.dto.UserDTOS.UserRequestDTO;
-import com.plataforma.servicos.dto.UserDTOS.UserResponseDTO;
-import com.plataforma.servicos.dto.UserDTOS.UserUpdateDTO;
+import com.plataforma.servicos.dto.UserDTOS.*;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.UserService;
 import jakarta.validation.Valid;
@@ -101,6 +98,22 @@ public class UserController {
         UserResponseDTO user = userService.update(id, dto);
         return ResponseEntity.ok(
                 ApiResponse.success(user, "Perfil atualizado com sucesso", HttpStatus.OK.value())
+        );
+    }
+
+    // PUT /api/users/{id}/password
+    // Altera senha do usuário
+    // Regra: exige senha atual + nova senha + confirmação
+    // Regra: nova senha diferente da atual
+    // Regra: confirmação igual à nova senha
+    // No M7 a senha será criptografada com BCrypt
+    @PutMapping("/{id}/password")
+    public ResponseEntity<ApiResponse<Void>> updatePassword(
+            @PathVariable UUID id,
+            @Valid @RequestBody UserPasswordDTO dto) {
+        userService.updatePassword(id, dto);
+        return ResponseEntity.ok(
+                ApiResponse.success(null, "Senha alterada com sucesso", HttpStatus.OK.value())
         );
     }
 }
