@@ -1,15 +1,14 @@
 package com.plataforma.servicos.controller;
 
+import com.plataforma.servicos.dto.UserDTOS.UserRequestDTO;
 import com.plataforma.servicos.dto.UserDTOS.UserResponseDTO;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -52,5 +51,26 @@ public class UserController {
         return ResponseEntity.ok(
                 ApiResponse.success(user, "Usuário encontrado", HttpStatus.OK.value())
         );
+    }
+
+    // POST /api/auth/register
+    // Cadastra novo usuário no sistema
+    // @Valid → ativa as validações do UserRequestDTO
+    //   (@NotBlank, @Email, @Size, @NotNull)
+    // Se alguma validação falhar → GlobalExceptionHandler
+    //   captura e retorna VALIDATION_ERROR automaticamente
+    // Regra: email único no sistema
+    // Status 201 → Created (recurso criado com sucesso)
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<UserResponseDTO>> create(
+            @Valid @RequestBody UserRequestDTO dto) {
+        UserResponseDTO user = userService.create(dto);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success(
+                        user,
+                        "Usuário cadastrado com sucesso",
+                        HttpStatus.CREATED.value()
+                ));
     }
 }
