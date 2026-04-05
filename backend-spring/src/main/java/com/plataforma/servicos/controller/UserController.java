@@ -80,7 +80,7 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<UserResponseDTO>> login(
             @Valid @RequestBody UserLoginDTO dto) {
-        UserResponseDTO user = userService.findByEmail(dto.email());
+        UserResponseDTO user = userService.login(dto);
         return ResponseEntity.ok(
                 ApiResponse.success(user, "Login realizado com sucesso", HttpStatus.OK.value())
         );
