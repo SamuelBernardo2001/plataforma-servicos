@@ -116,4 +116,17 @@ public class UserController {
                 ApiResponse.success(null, "Senha alterada com sucesso", HttpStatus.OK.value())
         );
     }
+
+    // DELETE /api/users/{id}
+    // Desativa usuário (soft delete)
+    // Regra: usuário não é deletado do banco — apenas ativo = false
+    // Regra: mantém histórico de ordens e avaliações
+    // Status 200 com null em data → operação sem retorno de dados
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deactivate(@PathVariable UUID id) {
+        userService.deactivate(id);
+        return ResponseEntity.ok(
+                ApiResponse.success(null, "Usuário desativado com sucesso", HttpStatus.OK.value())
+        );
+    }
 }
