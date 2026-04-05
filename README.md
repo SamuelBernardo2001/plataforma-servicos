@@ -1,179 +1,82 @@
+## Como rodar localmente
+
+### Pré-requisitos
+- Java 21+
+- Node.js 18+
+- Docker
+
+### Backend
+```bash
+cd backend-spring
+mvn spring-boot:run
+```
+
+### Frontend
+```bash
+cd frontend-angular/plataforma
+ng serve
+```
+
+## Roadmap
+
+| Milestone | Descrição | Status |
+|---|---|---|
+| M1 | Fundação do Projeto | ✅ Concluído |
+| M2 | Camada de Domínio | ✅ Concluído |
+| M3 | Persistência + Banco de Dados | ✅ Concluído |
+| M4 | Validação + DTOs + Service Layer | ✅ Concluído |
+| M5 | API REST | 🔄 Em andamento |
+| M6 | Segurança JWT | ⏳ Pendente |
+| M7 | Core do Marketplace | ⏳ Pendente |
+| M8 | Observabilidade e Governança | ⏳ Pendente |
+| M9 | Frontend Angular | ⏳ Pendente |
+| M10 | Produção | ⏳ Pendente |
+
 ## Status do Projeto
-🚧 Em desenvolvimento
 
----
+🔄 Em andamento — M5 (API REST)
 
-### ✅ M2 – Camada de Domínio Concluída
+### ✅ M1 — Fundação do Projeto
+- Estrutura de pastas do monorepo
+- Projeto Spring Boot configurado
+- Pacotes criados: `controller`, `service`, `repository`, `entity`, `dto`, `security`, `config`, `exception`, `mapper`, `util`
 
-Foi estruturada a base arquitetural do backend seguindo separação por camadas:
+### ✅ M2 — Camada de Domínio
+Entidades modeladas como domínio puro (sem JPA):
+- `UserModel` + `UserENUM` (CLIENTE, PRESTADOR, ADMIN)
+- `CategoryModel`
+- `ServiceModel`
+- `ServiceOrderModel` + `OrderStatusEnum` (REQUESTED, ACCEPTED, COMPLETED, CANCELED)
+- `ReviewModel`
+- `FavoriteModel`
+- `ServiceImageModel`
+- `ReportModel` + `ReportStatusEnum` (PENDENTE, RESOLVIDA, REJEITADA)
+- `MessageModel`
+- `EnderecoModel`
 
-**Pacotes criados:**
-- `controller` → Responsável por receber requisições HTTP
-- `service` → Regras de negócio da aplicação
-- `repository` → Camada de acesso a dados (preparada para JPA)
-- `entity` → Modelos de domínio (modelo puro)
-- `dto` → Objetos de transferência de dados
-- `security` → Estrutura preparada para autenticação JWT
-- `config` → Configurações gerais (CORS, beans futuros, etc.)
-- `exception` → Tratamento global de erros (base preparada)
-- `mapper` → Conversão entre Entity ↔ DTO
-- `util` → Classes utilitárias e helpers
+### ✅ M3 — Persistência + Banco de Dados
+- MySQL 8 via Docker na porta 3307
+- Todas as entidades convertidas para JPA com relacionamentos `@ManyToOne`, `@OneToMany`, `@OneToOne`
+- 10 repositories criados com Spring Data JPA
+- 8 migrations Flyway (V1 a V8)
 
-**📦 Entidades de Domínio Implementadas:**
-- UserModel + UserENUM (CLIENTE, PRESTADOR, ADMIN)
-- CategoryModel
-- ServiceModel
-- ServiceOrderModel + OrderStatusEnum (REQUESTED, ACCEPTED, COMPLETED, CANCELED)
-- ReviewModel
-- FavoriteModel
-- ServiceImageModel
-- ReportModel + ReportStatusEnum (PENDENTE, RESOLVIDA, REJEITADA)
-- MessageModel
-- EnderecoModel
+### ✅ M4 — Validação + DTOs + Service Layer
+- DTOs criados como Java Records com validações (`@NotBlank`, `@Email`, `@Size`, `@Min`, `@Max`)
+- Mappers criados para todas as entidades
+- 9 Services com regras de negócio completas:
+    - `UserService`, `ServiceService`, `OrderService`, `ReviewService`
+    - `FavoriteService`, `CategoryService`, `EnderecoService`
+    - `ReportService`, `MessageService`
 
----
-
-### ✅ M3 – Persistência + Banco de Dados Concluída
-
-Foi realizada a implementação completa da camada de persistência
-do sistema, integrando o backend com banco de dados relacional.
-
-**🐳 Banco de Dados:**
-- Configuração do MySQL utilizando Docker
-- Criação do ambiente isolado com docker-compose
-- Banco `plataforma_servicos` inicializado com sucesso
-- MySQL rodando na porta 3307
-
-**🧩 Integração com Spring Boot:**
-- Configuração do datasource no `application.properties`
-- Conexão com banco utilizando HikariCP
-- Projeto conectado com sucesso ao MySQL
-
-**🗄️ JPA (Hibernate):**
-- Todas as entidades convertidas para JPA com `@Entity`, `@Table`, `@Id`
-- Relacionamentos mapeados com `@ManyToOne`, `@OneToMany`, `@OneToOne`
-- Todos os relacionamentos usando `FetchType.LAZY`
-- Enums salvos como texto com `@Enumerated(EnumType.STRING)`
-- UUIDs como identificadores com `GenerationType.UUID`
-
-**📁 Repositórios criados:**
-- UserRepository
-- CategoryRepository
-- ServiceRepository
-- ServiceImageRepository
-- ServiceOrderRepository
-- ReviewRepository
-- FavoriteRepository
-- ReportRepository
-- MessageRepository
-- EnderecoRepository
-
-**🐘 Flyway (Migrations):**
-- V1__create_table_users
-- V2__create_table_categories
-- V3__create_table_services
-- V4__create_table_service_images
-- V5__create_table_service_orders
-- V6__create_table_reviews
-- V7__create_table_favorites
-- V8__create_table_enderecos
-
----
-
-### ✅ M4 – Validação + DTOs + Service Layer Concluída
-
-Foi implementada a camada de validação, transferência de dados
-e regras de negócio completas do sistema.
-
-**📦 DTOs criados como Java Records:**
-
-*UserDTOS/*
-- `UserRequestDTO` → cadastro com validações
-- `UserResponseDTO` → retorno sem senha
-- `UserUpdateDTO` → atualizar nome e telefone
-- `UserPasswordDTO` → alterar senha com confirmação
-- `UserLoginDTO` → autenticação
-
-*ServiceDTOS/*
-- `ServiceRequestDTO` → cadastro com validações
-- `ServiceResponseDTO` → retorno completo
-
-*CategoryDTOS/*
-- `CategoryRequestDTO`
-- `CategoryResponseDTO`
-
-*ServiceOrderDTOS/*
-- `ServiceOrderRequestDTO`
-- `ServiceOrderResponseDTO`
-
-*ReviewDTOS/*
-- `ReviewRequestDTO` → com @Min(1) e @Max(5) no rating
-- `ReviewResponseDTO` → com campos editado e editadoEm
-
-*FavoriteDTOS/*
-- `FavoriteRequestDTO`
-- `FavoriteResponseDTO`
-
-*ReportDTOS/*
-- `ReportRequestDTO`
-- `ReportResponseDTO` → com status da denúncia
-
-*MessageDTOS/*
-- `MessageRequestDTO`
-- `MessageResponseDTO` → com campos editado e editadoEm
-
-*EnderecoDTOS/*
-- `EnderecoRequestDTO` → cadastro completo
-- `EnderecoResponseDTO`
-- `EnderecoPatchDTO` → edição parcial campo por campo
-
-**🔄 Mappers criados:**
-- UserMapper
-- CategoryMapper
-- ServiceMapper
-- ServiceOrderMapper
-- ReviewMapper
-- FavoriteMapper
-- ReportMapper
-- MessageMapper
-- EnderecoMapper
-
-**⚙️ Services criados com regras de negócio:**
-
-- `UserService` → buscar, criar, atualizar, trocar senha, desativar
-- `ServiceService` → listar (público/prestador), criar só PRESTADOR,
-  atualizar, desativar, calcular média de avaliações
-- `OrderService` → criar ordem, fluxo completo de status,
-  listar por cliente/prestador, validar ordem concluída para avaliação
-- `ReviewService` → avaliar só após COMPLETED, sem duplicata,
-  editar, deletar, ADMIN modera
-- `FavoriteService` → toggle com unicidade, verificar favorito,
-  impede favoritar próprio serviço
-- `CategoryService` → CRUD completo apenas ADMIN,
-  unicidade de nome, serviços ficam pendentes ao desativar
-- `EnderecoService` → cadastrar após conta criada, atualização
-  completa e parcial, privacidade do endereço do cliente
-  (prestador vê só com ordem ACCEPTED, some após COMPLETED)
-- `ReportService` → criar denúncia, ADMIN resolve ou rejeita,
-  filtrar por status
-- `MessageService` → chat paginado (20 por página) igual WhatsApp,
-  enviar, editar mensagem, marcar como lida
-
-**🔒 Regras de negócio implementadas:**
+**Principais regras implementadas:**
 - Apenas PRESTADOR pode cadastrar serviços
 - Apenas CLIENTE pode criar ordens de serviço
-- Cliente não pode contratar seu próprio serviço
 - Avaliação só após ordem COMPLETED
-- Um cliente avalia um serviço apenas uma vez
 - Endereço do cliente visível ao prestador só com ordem ACCEPTED
-- Endereço some após ordem COMPLETED — privacidade
-- Soft delete em usuários, serviços e categorias
 - Toggle de favoritos com unicidade
-- Apenas ADMIN cria, edita e desativa categorias
-- Apenas ADMIN modera denúncias e avaliações
+- Moderação de denúncias e avaliações pelo ADMIN
 
----
-
-### 🔜 Próximo Módulo
-**M5 – API REST** — Controllers + endpoints padronizados
-com `ApiResponse`, paginação obrigatória e versionamento `/api/v1/`
+### 🔄 M5 — API REST (em andamento)
+- `ApiResponse` padronizado para todas as respostas
+- `GlobalExceptionHandler` para tratamento centralizado de erros
+- `SecurityConfig` temporária liberando endpoints para testes
