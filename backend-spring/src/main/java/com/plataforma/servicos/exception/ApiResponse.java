@@ -49,4 +49,16 @@ public class ApiResponse <T> {
                 .build();
     }
 
+    // Método para criar resposta de SUCESSO
+    // Usado nos Controllers quando a operação deu certo
+    // Ex: ApiResponse.success(userDTO, "Usuário criado", 201)
+    public static <T> ApiResponse<T> success(T data, String message, Integer status) {
+        return ApiResponse.<T>builder()
+                .data(data)
+                .status(status)
+                .message(message)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
 }
