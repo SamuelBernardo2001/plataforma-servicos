@@ -4,6 +4,15 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+# ===========================
+# SENSIVEIS - nunca commitar
+# ===========================
+.env
+*.env
+application-local.yml
+application-prod.yml
+application.properties
+
 ### STS ###
 .apt_generated
 .classpath
