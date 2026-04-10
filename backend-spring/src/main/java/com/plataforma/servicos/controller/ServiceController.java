@@ -148,4 +148,25 @@ public class ServiceController {
                 ));
     }
 
+    // PUT /api/services/{id}/prestador/{prestadorId}
+    // Atualiza dados do serviço
+    // Regra: apenas o próprio prestador pode atualizar seu serviço
+    // Regra: serviço desativado não pode ser atualizado
+    // Regra: nova categoria deve existir e estar ativa
+    // @Valid → valida ServiceRequestDTO
+    // No M7 o prestadorId virá do token JWT automaticamente
+    @PutMapping("/{id}/prestador/{prestadorId}")
+    public ResponseEntity<ApiResponse<ServiceResponseDTO>> update(
+            @PathVariable UUID id,
+            @PathVariable UUID prestadorId,
+            @Valid @RequestBody ServiceRequestDTO dto) {
+        ServiceResponseDTO service = serviceService.update(id, prestadorId, dto);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        service,
+                        "Serviço atualizado com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
+
 }
