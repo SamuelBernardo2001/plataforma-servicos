@@ -169,4 +169,24 @@ public class ServiceController {
                 ));
     }
 
+    // DELETE /api/services/{id}/prestador/{prestadorId}
+    // Desativa serviço — soft delete
+    // Regra: apenas o próprio prestador pode desativar seu serviço
+    // Regra: serviço NÃO é deletado do banco — apenas ativo = false
+    // Regra: serviço desativado não aparece nas listagens públicas
+    // Regra: prestador ainda vê o serviço desativado no painel
+    // No M7 o prestadorId virá do token JWT automaticamente
+    @DeleteMapping("/{id}/prestador/{prestadorId}")
+    public ResponseEntity<ApiResponse<Void>> deactivate(
+            @PathVariable UUID id,
+            @PathVariable UUID prestadorId) {
+        serviceService.deactivate(id, prestadorId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        null,
+                        "Serviço desativado com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
+
 }
