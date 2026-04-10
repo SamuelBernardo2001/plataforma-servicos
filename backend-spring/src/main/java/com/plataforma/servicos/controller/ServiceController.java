@@ -189,4 +189,22 @@ public class ServiceController {
                 ));
     }
 
+    // AVALIAÇÕES
+
+    // GET /api/services/{id}/media-avaliacao
+    // Retorna a média de avaliações de um serviço
+    // Regra: retorna 0.0 se não houver avaliações
+    // Quem usa: frontend para exibir estrelas na listagem
+    @GetMapping("/{id}/media-avaliacao")
+    public ResponseEntity<ApiResponse<Double>> getMediaAvaliacao(
+            @PathVariable UUID id) {
+        Double media = serviceService.calcularMediaAvaliacao(id);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        media,
+                        "Média de avaliações calculada",
+                        HttpStatus.OK.value()
+                ));
+    }
+
 }
