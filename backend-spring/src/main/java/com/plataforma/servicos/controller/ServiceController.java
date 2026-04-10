@@ -83,4 +83,22 @@ public class ServiceController {
                 ));
     }
 
+    // GET /api/services/prestador/{prestadorId}
+    // Lista serviços ATIVOS de um prestador específico
+    // Usado na página pública do prestador vista pelo cliente
+    // Regra: apenas serviços ativos aparecem para o público
+    // Regra: filtro via findByPrestadorIdAndAtivo()
+    // Quem usa: cliente visitando perfil público do prestador
+    @GetMapping("/prestador/{prestadorId}")
+    public ResponseEntity<ApiResponse<List<ServiceResponseDTO>>> findByPrestador(
+            @PathVariable UUID prestadorId) {
+        List<ServiceResponseDTO> services = serviceService.findByPrestador(prestadorId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        services,
+                        "Serviços do prestador listados com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
+
 }
