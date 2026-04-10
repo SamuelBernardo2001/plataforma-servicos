@@ -101,4 +101,25 @@ public class ServiceController {
                 ));
     }
 
+    // PAINEL DO PRESTADOR
+    // Apenas o próprio prestador acessa
+
+    // GET /api/services/meus/{prestadorId}
+    // Lista TODOS os serviços do prestador (ativos e inativos)
+    // Usado no painel do prestador para gerenciar seus serviços
+    // Diferente do findByPrestador() que só retorna ativos para o público
+    // Regra: prestador vê todos os seus serviços incluindo desativados
+    // No M7 o prestadorId virá do token JWT automaticamente
+    @GetMapping("/meus/{prestadorId}")
+    public ResponseEntity<ApiResponse<List<ServiceResponseDTO>>> findAllByPrestador(
+            @PathVariable UUID prestadorId) {
+        List<ServiceResponseDTO> services = serviceService.findAllByPrestador(prestadorId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        services,
+                        "Seus serviços listados com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
+
 }
