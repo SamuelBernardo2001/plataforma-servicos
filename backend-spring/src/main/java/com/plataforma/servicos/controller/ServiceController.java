@@ -65,4 +65,22 @@ public class ServiceController {
                 ));
     }
 
+    // GET /api/services/category/{categoriaId}
+    // Lista serviços ATIVOS de uma categoria específica
+    // Regra: categoria deve existir
+    // Regra: apenas serviços ativos da categoria aparecem
+    // Regra: filtro feito direto no banco via findByCategoriaIdAndAtivo()
+    // Quem usa: cliente filtrando serviços por categoria
+    @GetMapping("/category/{categoriaId}")
+    public ResponseEntity<ApiResponse<List<ServiceResponseDTO>>> findByCategory(
+            @PathVariable UUID categoriaId) {
+        List<ServiceResponseDTO> services = serviceService.findByCategory(categoriaId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        services,
+                        "Serviços da categoria listados com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
+
 }
