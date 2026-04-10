@@ -1,5 +1,6 @@
 package com.plataforma.servicos.controller;
 
+import com.plataforma.servicos.service.ServicoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,4 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 // Padrão recomendado pelo Spring — mais seguro que @Autowired
 @RequiredArgsConstructor
 public class ServiceController {
+
+    private final ServicoService serviceService;
 }
