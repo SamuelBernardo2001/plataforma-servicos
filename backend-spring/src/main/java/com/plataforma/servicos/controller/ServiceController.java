@@ -7,10 +7,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 // @RestController → combina @Controller + @ResponseBody
 // Todos os métodos retornam JSON automaticamente
@@ -46,5 +48,21 @@ public class ServiceController {
                 ));
     }
 
+    // GET /api/services/{id}
+    // Busca um serviço específico pelo UUID
+    // Regra: serviço desativado não é encontrado
+    // Regra: retorna erro se UUID for inválido
+    // Quem usa: cliente visualizando detalhes do serviço
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<ServiceResponseDTO>> findById(
+            @PathVariable UUID id) {
+        ServiceResponseDTO service = serviceService.findById(id);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        service,
+                        "Serviço encontrado",
+                        HttpStatus.OK.value()
+                ));
+    }
 
 }
