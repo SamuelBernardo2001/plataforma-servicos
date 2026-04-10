@@ -1,15 +1,14 @@
 package com.plataforma.servicos.controller;
 
+import com.plataforma.servicos.dto.ServiceDTOS.ServiceRequestDTO;
 import com.plataforma.servicos.dto.ServiceDTOS.ServiceResponseDTO;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.ServicoService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -119,6 +118,33 @@ public class ServiceController {
                         services,
                         "Seus serviços listados com sucesso",
                         HttpStatus.OK.value()
+                ));
+    }
+
+    // OPERAÇÕES DO PRESTADOR
+    // Apenas PRESTADOR pode criar, atualizar e desativar
+
+    // POST /api/services/prestador/{prestadorId}
+    // Cria novo serviço no marketplace
+    // Regra: apenas usuários com perfil PRESTADOR podem criar
+    // Regra: prestador deve estar ativo no sistema
+    // Regra: categoria informada deve existir e estar ativa
+    // @Valid → ativa validações do ServiceRequestDTO:
+    //   @NotBlank em nome, descricao, telefoneContato
+    //   @NotNull e @Positive em preco
+    //   @NotNull em categoriaId
+    // No M7 o prestadorId virá do token JWT automaticamente
+    @PostMapping("/prestador/{prestadorId}")
+    public ResponseEntity<ApiResponse<ServiceResponseDTO>> create(
+            @PathVariable UUID prestadorId,
+            @Valid @RequestBody ServiceRequestDTO dto) {
+        ServiceResponseDTO service = serviceService.create(prestadorId, dto);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success(
+                        service,
+                        "Serviço cadastrado com sucesso",
+                        HttpStatus.CREATED.value()
                 ));
     }
 
