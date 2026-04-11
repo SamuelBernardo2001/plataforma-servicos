@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 // @RestController → combina @Controller + @ResponseBody
@@ -44,6 +45,24 @@ public class ServiceOrderController {
                 ApiResponse.success(
                         order,
                         "Ordem encontrada",
+                        HttpStatus.OK.value()
+                ));
+    }
+
+    // GET /api/service-orders/cliente/{clienteId}
+    // Lista todas as ordens de um cliente
+    // Regra: cliente só vê suas próprias ordens
+    // Regra: retorna lista vazia se não tiver ordens
+    // Usado no painel do cliente para acompanhar contratações
+    // No M7 o clienteId virá do token JWT automaticamente
+    @GetMapping("/cliente/{clienteId}")
+    public ResponseEntity<ApiResponse<List<ServiceOrderResponseDTO>>> findByCliente(
+            @PathVariable UUID clienteId) {
+        List<ServiceOrderResponseDTO> orders = orderService.findByCliente(clienteId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        orders,
+                        "Ordens do cliente listadas com sucesso",
                         HttpStatus.OK.value()
                 ));
     }
