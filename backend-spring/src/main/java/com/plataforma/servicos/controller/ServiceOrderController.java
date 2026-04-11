@@ -129,4 +129,36 @@ public class ServiceOrderController {
                 ));
     }
 
+    // FLUXO DE STATUS
+    // Controla o ciclo de vida da ordem
+
+    // PATCH /api/service-orders/{id}/status/usuario/{usuarioId}
+    // Atualiza o status da ordem
+    // Fluxo completo:
+    //   REQUESTED → ACCEPTED   (prestador aceita)
+    //   REQUESTED → CANCELED   (prestador recusa ou cliente cancela)
+    //   ACCEPTED  → COMPLETED  (prestador conclui)
+    //   ACCEPTED  → CANCELED   (prestador cancela)
+    // Regra: ordem COMPLETED ou CANCELED não muda mais de status
+    // Regra: apenas participantes da ordem podem alterar status
+    // Regra: concluidoEm é setado automaticamente ao COMPLETED
+    //        liberando avaliação do cliente
+    // Por que PATCH e não PUT?
+    //   PUT → atualiza o recurso inteiro
+    //   PATCH → atualiza apenas um campo (status)
+    // No M7 o usuarioId virá do token JWT automaticamente
+    @PatchMapping("/{id}/status/usuario/{usuarioId}")
+    public ResponseEntity<ApiResponse<ServiceOrderResponseDTO>> updateStatus(
+            @PathVariable UUID id,
+            @PathVariable UUID usuarioId,
+            @RequestParam OrderStatusEnum novoStatus) {
+        ServiceOrderResponseDTO order = orderService.updateStatus(id, usuarioId, novoStatus);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        order,
+                        "Status da ordem atualizado com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
+
 }
