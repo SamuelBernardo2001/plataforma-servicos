@@ -1,16 +1,15 @@
 package com.plataforma.servicos.controller;
 
+import com.plataforma.servicos.dto.serviceOrderDTOS.ServiceOrderRequestDTO;
 import com.plataforma.servicos.dto.serviceOrderDTOS.ServiceOrderResponseDTO;
 import com.plataforma.servicos.entity.OrderStatusEnum;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.OrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -102,6 +101,31 @@ public class ServiceOrderController {
                         orders,
                         "Ordens filtradas por status com sucesso",
                         HttpStatus.OK.value()
+                ));
+    }
+
+    // CRIAÇÃO DE ORDEM
+    // Apenas CLIENTE pode criar
+
+    // POST /api/service-orders/cliente/{clienteId}
+    // Cria nova ordem de serviço (contratação)
+    // Regra: apenas CLIENTE pode criar ordem
+    // Regra: serviço deve estar ativo
+    // Regra: cliente não pode contratar seu próprio serviço
+    // Regra: cliente não pode ter ordem REQUESTED ou ACCEPTED
+    //        para o mesmo serviço — sem duplicata ativa
+    // No M7 o clienteId virá do token JWT automaticamente
+    @PostMapping("/cliente/{clienteId}")
+    public ResponseEntity<ApiResponse<ServiceOrderResponseDTO>> create(
+            @PathVariable UUID clienteId,
+            @Valid @RequestBody ServiceOrderRequestDTO dto) {
+        ServiceOrderResponseDTO order = orderService.create(clienteId, dto);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success(
+                        order,
+                        "Ordem de serviço criada com sucesso",
+                        HttpStatus.CREATED.value()
                 ));
     }
 
