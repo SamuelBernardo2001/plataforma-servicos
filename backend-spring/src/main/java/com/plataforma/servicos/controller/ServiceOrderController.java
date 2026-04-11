@@ -66,4 +66,22 @@ public class ServiceOrderController {
                         HttpStatus.OK.value()
                 ));
     }
+
+    // GET /api/service-orders/prestador/{prestadorId}
+    // Lista todas as ordens recebidas pelo prestador
+    // Regra: prestador só vê suas próprias ordens recebidas
+    // Regra: retorna lista vazia se não tiver ordens
+    // Usado no painel do prestador para gerenciar pedidos recebidos
+    // No M7 o prestadorId virá do token JWT automaticamente
+    @GetMapping("/prestador/{prestadorId}")
+    public ResponseEntity<ApiResponse<List<ServiceOrderResponseDTO>>> findByPrestador(
+            @PathVariable UUID prestadorId) {
+        List<ServiceOrderResponseDTO> orders = orderService.findByPrestador(prestadorId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        orders,
+                        "Ordens do prestador listadas com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
 }
