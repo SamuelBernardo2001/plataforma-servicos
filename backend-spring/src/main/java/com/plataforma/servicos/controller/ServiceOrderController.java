@@ -161,4 +161,27 @@ public class ServiceOrderController {
                 ));
     }
 
+    // VERIFICAÇÕES
+
+    // GET /api/service-orders/verificar-concluida
+    // Verifica se existe ordem COMPLETED entre cliente e serviço
+    // Usado pelo frontend antes de mostrar botão de avaliação
+    // Regra: retorna true se existe ordem COMPLETED
+    //        retorna false se não existe
+    // Isso garante que avaliação só aparece após contratação real
+    @GetMapping("/verificar-concluida")
+    public ResponseEntity<ApiResponse<Boolean>> verificarOrdemConcluida(
+            @RequestParam UUID clienteId,
+            @RequestParam UUID serviceId) {
+        boolean existe = orderService.existeOrdemConcluida(clienteId, serviceId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        existe,
+                        existe
+                                ? "Existe ordem concluída — avaliação liberada"
+                                : "Não existe ordem concluída — avaliação bloqueada",
+                        HttpStatus.OK.value()
+                ));
+    }
+
 }
