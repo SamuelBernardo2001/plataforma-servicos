@@ -7,10 +7,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 // @RestController → combina @Controller + @ResponseBody
 // Todos os métodos retornam JSON automaticamente
@@ -42,6 +44,23 @@ public class CategoryController {
                 ApiResponse.success(
                         categories,
                         "Categorias listadas com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
+
+    // GET /api/categories/{id}
+    // Busca uma categoria específica pelo UUID
+    // Regra: retorna erro se UUID for inválido
+    // Regra: retorna erro se categoria não existir
+    // Quem usa: frontend para exibir detalhes da categoria
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<CategoryResponseDTO>> findById(
+            @PathVariable UUID id) {
+        CategoryResponseDTO category = categoryService.findById(id);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        category,
+                        "Categoria encontrada",
                         HttpStatus.OK.value()
                 ));
     }
