@@ -107,4 +107,24 @@ public class CategoryController {
                         HttpStatus.OK.value()
                 ));
     }
+
+    // DELETE /api/categories/{id}/admin/{adminId}
+    // Desativa categoria — soft delete
+    // Regra: apenas ADMIN pode desativar categorias
+    // Regra: categoria NÃO é deletada do banco — apenas ativo = false
+    // Regra: serviços que usavam essa categoria ficam pendentes — prestador precisará cadastrar uma nova categoria
+    // Regra: categoria já desativada não pode ser desativada novamente
+    // No M7 o adminId virá do token JWT automaticamente
+    @DeleteMapping("/{id}/admin/{adminId}")
+    public ResponseEntity<ApiResponse<Void>> deactivate(
+            @PathVariable UUID id,
+            @PathVariable UUID adminId) {
+        categoryService.deactivate(id, adminId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        null,
+                        "Categoria desativada com sucesso — serviços vinculados ficam pendentes",
+                        HttpStatus.OK.value()
+                ));
+    }
 }
