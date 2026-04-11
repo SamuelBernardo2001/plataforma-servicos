@@ -1,6 +1,7 @@
 package com.plataforma.servicos.controller;
 
 import com.plataforma.servicos.dto.serviceOrderDTOS.ServiceOrderResponseDTO;
+import com.plataforma.servicos.entity.OrderStatusEnum;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -84,4 +85,24 @@ public class ServiceOrderController {
                         HttpStatus.OK.value()
                 ));
     }
+
+    // GET /api/service-orders/cliente/{clienteId}/status/{status}
+    // Lista ordens do cliente filtradas por status
+    // Regra: cliente só vê suas próprias ordens
+    // Usado no painel do cliente para filtrar por situação
+    // Ex: ver apenas ordens REQUESTED, ACCEPTED, COMPLETED ou CANCELED
+    // No M7 o clienteId virá do token JWT automaticamente
+    @GetMapping("/cliente/{clienteId}/status/{status}")
+    public ResponseEntity<ApiResponse<List<ServiceOrderResponseDTO>>> findByStatus(
+            @PathVariable UUID clienteId,
+            @PathVariable OrderStatusEnum status) {
+        List<ServiceOrderResponseDTO> orders = orderService.findByStatus(clienteId, status);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        orders,
+                        "Ordens filtradas por status com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
+
 }
