@@ -87,4 +87,24 @@ public class CategoryController {
                         HttpStatus.CREATED.value()
                 ));
     }
+
+    // PUT /api/categories/{id}/admin/{adminId}
+    // Atualiza nome e descrição de uma categoria
+    // Regra: apenas ADMIN pode editar categorias
+    // Regra: novo nome deve ser único se for diferente do atual
+    // Regra: serviços vinculados continuam funcionando normalmente
+    // No M7 o adminId virá do token JWT automaticamente
+    @PutMapping("/{id}/admin/{adminId}")
+    public ResponseEntity<ApiResponse<CategoryResponseDTO>> update(
+            @PathVariable UUID id,
+            @PathVariable UUID adminId,
+            @Valid @RequestBody CategoryRequestDTO dto) {
+        CategoryResponseDTO category = categoryService.update(id, adminId, dto);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        category,
+                        "Categoria atualizada com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
 }
