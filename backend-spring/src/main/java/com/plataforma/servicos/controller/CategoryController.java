@@ -1,15 +1,14 @@
 package com.plataforma.servicos.controller;
 
+import com.plataforma.servicos.dto.CategoryDTOS.CategoryRequestDTO;
 import com.plataforma.servicos.dto.CategoryDTOS.CategoryResponseDTO;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.CategoryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -62,6 +61,30 @@ public class CategoryController {
                         category,
                         "Categoria encontrada",
                         HttpStatus.OK.value()
+                ));
+    }
+
+    // OPERAÇÕES DO ADMIN
+    // Apenas ADMIN pode criar, editar e desativar
+
+    // POST /api/categories/admin/{adminId}
+    // Cria nova categoria no sistema
+    // Regra: apenas ADMIN pode criar categorias
+    // Regra: nome da categoria deve ser único no sistema
+    // @Valid  → ativa validações do CategoryRequestDTO:
+    //   @NotBlank em nome e descricao
+    // No M7 o adminId virá do token JWT automaticamente
+    @PostMapping("/admin/{adminId}")
+    public ResponseEntity<ApiResponse<CategoryResponseDTO>> create(
+            @PathVariable UUID adminId,
+            @Valid @RequestBody CategoryRequestDTO dto) {
+        CategoryResponseDTO category = categoryService.create(adminId, dto);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success(
+                        category,
+                        "Categoria criada com sucesso",
+                        HttpStatus.CREATED.value()
                 ));
     }
 }
