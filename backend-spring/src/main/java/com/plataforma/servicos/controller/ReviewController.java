@@ -117,4 +117,27 @@ public class ReviewController {
                         HttpStatus.OK.value()
                 ));
     }
+
+    // OPERAÇÕES DO ADMIN
+    // Moderação do marketplace
+
+    // DELETE /api/reviews/{id}/admin/{adminId}
+    // ADMIN remove avaliação inadequada
+    // Regra: apenas ADMIN pode usar este endpoint
+    // Regra: usado para moderação — remover avaliações
+    //        falsas, ofensivas ou inadequadas
+    // Importante para manter qualidade do marketplace
+    // No M7 o adminId virá do token JWT automaticamente
+    @DeleteMapping("/{id}/admin/{adminId}")
+    public ResponseEntity<ApiResponse<Void>> deleteByAdmin(
+            @PathVariable UUID id,
+            @PathVariable UUID adminId) {
+        reviewService.deleteByAdmin(id, adminId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        null,
+                        "Avaliação removida pelo administrador",
+                        HttpStatus.OK.value()
+                ));
+    }
 }
