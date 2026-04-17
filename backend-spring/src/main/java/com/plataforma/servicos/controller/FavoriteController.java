@@ -49,4 +49,25 @@ public class FavoriteController {
                         HttpStatus.OK.value()
                 ));
     }
+
+    // GET /api/favorites/usuario/{usuarioId}/service/{serviceId}
+    // Verifica se um serviço é favorito do usuário
+    // Regra: retorna true se favoritado, false se não
+    // Usado no frontend para mostrar coração cheio ou vazio
+    // no botão de favoritar da listagem de serviços
+    // No M7 o usuarioId virá do token JWT automaticamente
+    @GetMapping("/usuario/{usuarioId}/service/{serviceId}")
+    public ResponseEntity<ApiResponse<Boolean>> isFavorito(
+            @PathVariable UUID usuarioId,
+            @PathVariable UUID serviceId) {
+        boolean favorito = favoriteService.isFavorito(usuarioId, serviceId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        favorito,
+                        favorito
+                                ? "Serviço está nos favoritos"
+                                : "Serviço não está nos favoritos",
+                        HttpStatus.OK.value()
+                ));
+    }
 }
