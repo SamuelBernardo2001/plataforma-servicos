@@ -1,8 +1,10 @@
 package com.plataforma.servicos.controller;
 
+import com.plataforma.servicos.dto.messageDTOS.MessageRequestDTO;
 import com.plataforma.servicos.dto.messageDTOS.MessageResponseDTO;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.MessageService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -57,6 +59,33 @@ public class MessageController {
                         messages,
                         "Mensagens listadas com sucesso",
                         HttpStatus.OK.value()
+                ));
+    }
+
+    // ENVIO DE MENSAGEM
+
+    // POST /api/messages/remetente/{remetenteId}
+    // Envia mensagem vinculada a uma ordem
+    // Regra: apenas cliente ou prestador da ordem podem enviar
+    // Regra: não é possível enviar em ordem COMPLETED ou CANCELED
+    //        faz sentido — se o serviço foi concluído ou cancelado
+    //        não há mais o que conversar nessa ordem
+    // Regra: receptor é definido automaticamente pelo Service
+    //        se remetente é cliente → receptor é prestador
+    //        se remetente é prestador → receptor é cliente
+    //        não precisa informar o receptor no body
+    // No M7 o remetenteId virá do token JWT automaticamente
+    @PostMapping("/remetente/{remetenteId}")
+    public ResponseEntity<ApiResponse<MessageResponseDTO>> send(
+            @PathVariable UUID remetenteId,
+            @Valid @RequestBody MessageRequestDTO dto) {
+        MessageResponseDTO message = messageService.send(remetenteId, dto);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success(
+                        message,
+                        "Mensagem enviada com sucesso",
+                        HttpStatus.CREATED.value()
                 ));
     }
 }
