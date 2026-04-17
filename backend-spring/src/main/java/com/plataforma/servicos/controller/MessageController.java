@@ -88,4 +88,36 @@ public class MessageController {
                         HttpStatus.CREATED.value()
                 ));
     }
+
+    // EDIÇÃO DE MENSAGEM
+
+    // PATCH /api/messages/{id}/remetente/{remetenteId}
+    // Edita conteúdo de uma mensagem
+    // Regra: apenas o remetente pode editar sua própria mensagem
+    // Regra: mensagem não pode ser deletada — apenas editada
+    //        mantém histórico íntegro da conversa
+    // Regra: marca editado = true e registra editadoEm
+    //        igual ao WhatsApp que mostra "editada"
+    //        receptor sabe que mensagem foi modificada
+    // Regra: não é possível editar em ordem finalizada
+    // Por que PATCH e não PUT?
+    //   PUT → substitui o recurso inteiro
+    //   PATCH → atualiza apenas o conteúdo da mensagem
+    // Por que @RequestParam e não @RequestBody?
+    //   Editar mensagem é simples — apenas o texto muda
+    //   @RequestParam evita criar um DTO só para isso
+    // No M7 o remetenteId virá do token JWT automaticamente
+    @PatchMapping("/{id}/remetente/{remetenteId}")
+    public ResponseEntity<ApiResponse<MessageResponseDTO>> edit(
+            @PathVariable UUID id,
+            @PathVariable UUID remetenteId,
+            @RequestParam String novoConteudo) {
+        MessageResponseDTO message = messageService.edit(id, remetenteId, novoConteudo);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        message,
+                        "Mensagem editada com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
 }
