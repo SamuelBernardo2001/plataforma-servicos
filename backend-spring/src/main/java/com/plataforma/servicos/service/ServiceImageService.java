@@ -100,4 +100,24 @@ public class ServiceImageService {
 
         return serviceImageMapper.toResponseDTO(serviceImageRepository.save(image));
     }
+
+    // Remove imagem do serviço
+    // Regra: apenas o próprio PRESTADOR dono do serviço pode remover
+    // Regra: imagem deve existir
+    // No M7 o prestadorId virá do token JWT automaticamente
+    // No M7 será integrado com Cloudinary para deletar do storage
+    @Transactional
+    public void removeImage(UUID imageId, UUID prestadorId) {
+        ServiceImageModel image = serviceImageRepository.findById(imageId)
+                .orElseThrow(() -> new RuntimeException("Imagem não encontrada"));
+
+        // Apenas o dono do serviço pode remover imagens
+        if (!image.getService().getPrestador().getId().equals(prestadorId)) {
+            throw new RuntimeException(
+                    "Você não tem permissão para remover esta imagem"
+            );
+        }
+
+        serviceImageRepository.delete(image);
+    }
 }
