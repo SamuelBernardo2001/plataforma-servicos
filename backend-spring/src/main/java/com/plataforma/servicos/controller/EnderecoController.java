@@ -48,4 +48,27 @@ public class EnderecoController {
                         HttpStatus.OK.value()
                 ));
     }
+
+    // GET /api/enderecos/cliente/{clienteId}/prestador/{prestadorId}
+    // Prestador visualiza endereço do cliente
+    // Regra: prestador só consegue ver o endereço se existir
+    //        ordem ACCEPTED entre ele e o cliente
+    // Regra: endereço some após ordem COMPLETED — privacidade
+    // Regra: protege privacidade do cliente — prestador não
+    //        consegue ver endereço sem contratação ativa
+    // Usado quando prestador precisa saber onde executar o serviço
+    // No M7 o prestadorId virá do token JWT automaticamente
+    @GetMapping("/cliente/{clienteId}/prestador/{prestadorId}")
+    public ResponseEntity<ApiResponse<EnderecoResponseDTO>> findByUsuarioParaPrestador(
+            @PathVariable UUID clienteId,
+            @PathVariable UUID prestadorId) {
+        EnderecoResponseDTO endereco = enderecoService
+                .findByUsuarioParaPrestador(clienteId, prestadorId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        endereco,
+                        "Endereço do cliente encontrado",
+                        HttpStatus.OK.value()
+                ));
+    }
 }
