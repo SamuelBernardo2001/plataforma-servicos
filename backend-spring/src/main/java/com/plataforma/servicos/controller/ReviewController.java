@@ -1,15 +1,14 @@
 package com.plataforma.servicos.controller;
 
+import com.plataforma.servicos.dto.reviewDTOS.ReviewRequestDTO;
 import com.plataforma.servicos.dto.reviewDTOS.ReviewResponseDTO;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.ReviewService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -48,6 +47,33 @@ public class ReviewController {
                         reviews,
                         "Avaliações listadas com sucesso",
                         HttpStatus.OK.value()
+                ));
+    }
+
+    // OPERAÇÕES DO CLIENTE
+
+    // POST /api/reviews/cliente/{clienteId}
+    // Cria avaliação de um serviço
+    // Regra: apenas CLIENTE pode avaliar
+    // Regra: a ordem informada deve pertencer ao cliente
+    // Regra: a ordem deve estar COMPLETED
+    //        → regra central do marketplace
+    //        → garante que avaliação vem de experiência real
+    // Regra: cliente só pode avaliar um serviço uma vez
+    //        → sem avaliação duplicada
+    // Regra: nota entre 1 e 5 — validado no DTO com @Min e @Max
+    // No M7 o clienteId virá do token JWT automaticamente
+    @PostMapping("/cliente/{clienteId}")
+    public ResponseEntity<ApiResponse<ReviewResponseDTO>> create(
+            @PathVariable UUID clienteId,
+            @Valid @RequestBody ReviewRequestDTO dto) {
+        ReviewResponseDTO review = reviewService.create(clienteId, dto);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success(
+                        review,
+                        "Avaliação criada com sucesso",
+                        HttpStatus.CREATED.value()
                 ));
     }
 }
