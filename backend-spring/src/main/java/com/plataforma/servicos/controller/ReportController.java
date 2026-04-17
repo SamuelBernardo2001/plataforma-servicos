@@ -1,8 +1,18 @@
 package com.plataforma.servicos.controller;
 
+import com.plataforma.servicos.dto.reportDTOS.ReportResponseDTO;
+import com.plataforma.servicos.exception.ApiResponse;
+import com.plataforma.servicos.service.ReportService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.UUID;
 
 // @RestController → combina @Controller + @ResponseBody
 // Todos os métodos retornam JSON automaticamente
@@ -15,4 +25,30 @@ import org.springframework.web.bind.annotation.RestController;
 // Padrão recomendado pelo Spring — mais seguro que @Autowired
 @RequiredArgsConstructor
 public class ReportController {
+
+    private final ReportService reportService;
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // CONSULTAS DO ADMIN
+    // Apenas ADMIN pode ver as denúncias
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    // GET /api/reports/admin/{adminId}
+    // Lista todas as denúncias do sistema
+    // Regra: apenas ADMIN pode ver todas as denúncias
+    // Regra: retorna lista com todos os status
+    //        (PENDENTE, RESOLVIDA, REJEITADA)
+    // Usado no painel de moderação do ADMIN
+    // No M7 o adminId virá do token JWT automaticamente
+    @GetMapping("/admin/{adminId}")
+    public ResponseEntity<ApiResponse<List<ReportResponseDTO>>> findAll(
+            @PathVariable UUID adminId) {
+        List<ReportResponseDTO> reports = reportService.findAll(adminId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        reports,
+                        "Denúncias listadas com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
 }
