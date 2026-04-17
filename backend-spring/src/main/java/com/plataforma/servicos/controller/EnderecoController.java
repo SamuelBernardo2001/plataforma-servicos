@@ -93,4 +93,25 @@ public class EnderecoController {
                         HttpStatus.CREATED.value()
                 ));
     }
+
+    // ATUALIZAÇÕES
+
+    // PUT /api/enderecos/usuario/{usuarioId}
+    // Atualiza endereço completo do usuário
+    // Regra: usuário só pode atualizar seu próprio endereço
+    // Regra: todos os campos são atualizados de uma vez
+    // Usado quando usuário quer trocar de endereço completamente
+    // No M7 o usuarioId virá do token JWT automaticamente
+    @PutMapping("/usuario/{usuarioId}")
+    public ResponseEntity<ApiResponse<EnderecoResponseDTO>> update(
+            @PathVariable UUID usuarioId,
+            @Valid @RequestBody EnderecoRequestDTO dto) {
+        EnderecoResponseDTO endereco = enderecoService.update(usuarioId, dto);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        endereco,
+                        "Endereço atualizado com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
 }
