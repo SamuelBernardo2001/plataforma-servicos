@@ -123,4 +123,27 @@ public class ReportController {
                         HttpStatus.OK.value()
                 ));
     }
+
+    // PATCH /api/reports/{id}/rejeitar/admin/{adminId}
+    // ADMIN rejeita a denúncia
+    // Regra: apenas ADMIN pode rejeitar
+    // Regra: apenas denúncias PENDENTES podem ser rejeitadas
+    // Regra: denúncia RESOLVIDA ou REJEITADA não muda mais
+    // Significa: denúncia era inválida ou sem fundamento
+    //            ex: denúncia falsa, sem provas, mal intencionada
+    // Por que PATCH?
+    //   Estamos atualizando apenas o status — não o recurso inteiro
+    // No M7 o adminId virá do token JWT automaticamente
+    @PatchMapping("/{id}/rejeitar/admin/{adminId}")
+    public ResponseEntity<ApiResponse<ReportResponseDTO>> reject(
+            @PathVariable UUID id,
+            @PathVariable UUID adminId) {
+        ReportResponseDTO report = reportService.reject(id, adminId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        report,
+                        "Denúncia rejeitada com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
 }
