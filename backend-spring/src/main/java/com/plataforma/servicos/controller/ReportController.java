@@ -1,16 +1,15 @@
 package com.plataforma.servicos.controller;
 
+import com.plataforma.servicos.dto.reportDTOS.ReportRequestDTO;
 import com.plataforma.servicos.dto.reportDTOS.ReportResponseDTO;
 import com.plataforma.servicos.entity.ReportStatusEnum;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.ReportService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -72,6 +71,30 @@ public class ReportController {
                         reports,
                         "Denúncias filtradas por status com sucesso",
                         HttpStatus.OK.value()
+                ));
+    }
+
+    // CRIAÇÃO DE DENÚNCIA
+    // Qualquer usuário autenticado pode denunciar
+
+    // POST /api/reports/usuario/{reporterId}
+    // Cria uma denúncia contra outro usuário
+    // Regra: usuário não pode denunciar a si mesmo
+    // Regra: usuário denunciado deve existir
+    // Regra: ordem informada deve existir (quando informada)
+    // Regra: toda denúncia começa com status PENDENTE
+    // No M7 o reporterId virá do token JWT automaticamente
+    @PostMapping("/usuario/{reporterId}")
+    public ResponseEntity<ApiResponse<ReportResponseDTO>> create(
+            @PathVariable UUID reporterId,
+            @Valid @RequestBody ReportRequestDTO dto) {
+        ReportResponseDTO report = reportService.create(reporterId, dto);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success(
+                        report,
+                        "Denúncia registrada com sucesso",
+                        HttpStatus.CREATED.value()
                 ));
     }
 }
