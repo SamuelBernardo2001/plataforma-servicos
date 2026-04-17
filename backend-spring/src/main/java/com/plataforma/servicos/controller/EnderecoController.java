@@ -138,4 +138,26 @@ public class EnderecoController {
                         HttpStatus.OK.value()
                 ));
     }
+
+    // REMOÇÃO
+
+    // DELETE /api/enderecos/usuario/{usuarioId}
+    // Deleta endereço do usuário
+    // Regra: usuário só pode deletar seu próprio endereço
+    // Regra: após deletar pode cadastrar um novo
+    // Atenção: se prestador tiver ordem ACCEPTED ativa
+    //          cliente não deveria deletar o endereço
+    //          essa validação será implementada no M7
+    // No M7 o usuarioId virá do token JWT automaticamente
+    @DeleteMapping("/usuario/{usuarioId}")
+    public ResponseEntity<ApiResponse<Void>> delete(
+            @PathVariable UUID usuarioId) {
+        enderecoService.delete(usuarioId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        null,
+                        "Endereço removido com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
 }
