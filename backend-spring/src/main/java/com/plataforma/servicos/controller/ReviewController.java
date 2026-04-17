@@ -76,4 +76,26 @@ public class ReviewController {
                         HttpStatus.CREATED.value()
                 ));
     }
+
+    // PUT /api/reviews/{id}/cliente/{clienteId}
+    // Edita avaliação existente
+    // Regra: apenas o próprio cliente que criou pode editar
+    // Regra: nota deve continuar entre 1 e 5
+    // Regra: marca editado = true e registra editadoEm
+    //        → transparência para prestador e outros clientes
+    //        → igual ao WhatsApp que mostra "editada"
+    // No M7 o clienteId virá do token JWT automaticamente
+    @PutMapping("/{id}/cliente/{clienteId}")
+    public ResponseEntity<ApiResponse<ReviewResponseDTO>> update(
+            @PathVariable UUID id,
+            @PathVariable UUID clienteId,
+            @Valid @RequestBody ReviewRequestDTO dto) {
+        ReviewResponseDTO review = reviewService.update(id, clienteId, dto);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        review,
+                        "Avaliação atualizada com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
 }
