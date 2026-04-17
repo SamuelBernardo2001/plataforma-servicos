@@ -15,4 +15,9 @@ public class ServiceImageService {
     private final ServiceRepository serviceRepository;
     private final UserRepository userRepository;
     private final ServiceImageMapper serviceImageMapper;
+
+    // Limite máximo de imagens por serviço
+    // 10 imagens são suficientes para mostrar o trabalho
+    // profissionalmente sem sobrecarregar o sistema
+    private static final int MAX_IMAGENS_POR_SERVICO = 10;
 }
