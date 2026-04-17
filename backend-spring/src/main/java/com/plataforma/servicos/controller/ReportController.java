@@ -1,6 +1,7 @@
 package com.plataforma.servicos.controller;
 
 import com.plataforma.servicos.dto.reportDTOS.ReportResponseDTO;
+import com.plataforma.servicos.entity.ReportStatusEnum;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.ReportService;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +49,28 @@ public class ReportController {
                 ApiResponse.success(
                         reports,
                         "Denúncias listadas com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
+
+    // GET /api/reports/admin/{adminId}/status/{status}
+    // Lista denúncias filtradas por status
+    // Regra: apenas ADMIN pode filtrar denúncias
+    // Usado no painel de moderação para o ADMIN
+    //   gerenciar denúncias pendentes separadas das resolvidas
+    // Ex: GET .../status/PENDENTE → só denúncias aguardando análise
+    //     GET .../status/RESOLVIDA → só denúncias já resolvidas
+    //     GET .../status/REJEITADA → só denúncias rejeitadas
+    // No M7 o adminId virá do token JWT automaticamente
+    @GetMapping("/admin/{adminId}/status/{status}")
+    public ResponseEntity<ApiResponse<List<ReportResponseDTO>>> findByStatus(
+            @PathVariable UUID adminId,
+            @PathVariable ReportStatusEnum status) {
+        List<ReportResponseDTO> reports = reportService.findByStatus(adminId, status);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        reports,
+                        "Denúncias filtradas por status com sucesso",
                         HttpStatus.OK.value()
                 ));
     }
