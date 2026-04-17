@@ -1,15 +1,14 @@
 package com.plataforma.servicos.controller;
 
+import com.plataforma.servicos.dto.serviceImagesDTO.ServiceImageRequestDTO;
 import com.plataforma.servicos.dto.serviceImagesDTO.ServiceImageResponseDTO;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.ServiceImageService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -48,6 +47,32 @@ public class ServiceImageController {
                         images,
                         "Imagens do serviço listadas com sucesso",
                         HttpStatus.OK.value()
+                ));
+    }
+
+    // OPERAÇÕES DO PRESTADOR
+    // Apenas o dono do serviço pode adicionar e remover
+
+    // POST /api/service-images/service/{serviceId}/prestador/{prestadorId}
+    // Adiciona imagem ao serviço
+    // Regra: apenas o próprio PRESTADOR dono do serviço pode adicionar
+    // Regra: serviço deve estar ativo
+    // Regra: limite máximo de 10 imagens por serviço
+    // No M7 o prestadorId virá do token JWT automaticamente
+    // No M7 será integrado com Cloudinary para upload real
+    @PostMapping("/service/{serviceId}/prestador/{prestadorId}")
+    public ResponseEntity<ApiResponse<ServiceImageResponseDTO>> addImage(
+            @PathVariable UUID serviceId,
+            @PathVariable UUID prestadorId,
+            @Valid @RequestBody ServiceImageRequestDTO dto) {
+        ServiceImageResponseDTO image = serviceImageService.addImage(
+                serviceId, prestadorId, dto);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success(
+                        image,
+                        "Imagem adicionada com sucesso",
+                        HttpStatus.CREATED.value()
                 ));
     }
 }
