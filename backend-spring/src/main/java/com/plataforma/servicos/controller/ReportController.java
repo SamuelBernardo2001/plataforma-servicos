@@ -97,4 +97,30 @@ public class ReportController {
                         HttpStatus.CREATED.value()
                 ));
     }
+
+    // MODERAÇÃO DO ADMIN
+    // Apenas ADMIN pode resolver ou rejeitar
+
+    // PATCH /api/reports/{id}/resolver/admin/{adminId}
+    // ADMIN resolve a denúncia
+    // Regra: apenas ADMIN pode resolver
+    // Regra: apenas denúncias PENDENTES podem ser resolvidas
+    // Regra: denúncia RESOLVIDA ou REJEITADA não muda mais
+    // Significa: denúncia era válida e ADMIN tomou providências
+    //            ex: usuário banido, conteúdo removido
+    // Por que PATCH?
+    //   Estamos atualizando apenas o status — não o recurso inteiro
+    // No M7 o adminId virá do token JWT automaticamente
+    @PatchMapping("/{id}/resolver/admin/{adminId}")
+    public ResponseEntity<ApiResponse<ReportResponseDTO>> resolve(
+            @PathVariable UUID id,
+            @PathVariable UUID adminId) {
+        ReportResponseDTO report = reportService.resolve(id, adminId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        report,
+                        "Denúncia resolvida com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
 }
