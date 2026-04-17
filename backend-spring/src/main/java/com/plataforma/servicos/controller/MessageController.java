@@ -120,4 +120,30 @@ public class MessageController {
                         HttpStatus.OK.value()
                 ));
     }
+
+    // CONTROLE DE LEITURA
+
+    // PATCH /api/messages/ordem/{ordemId}/lidas/usuario/{usuarioId}
+    // Marca todas as mensagens não lidas como lidas
+    // Regra: apenas o receptor pode marcar como lida
+    // Regra: marca todas de uma vez — não uma por uma
+    // Usado quando usuário abre o chat da ordem
+    //   igual ao WhatsApp que marca todas como lidas
+    //   quando você abre a conversa
+    // Por que PATCH?
+    //   Estamos atualizando o campo lida das mensagens
+    //   não criando nem deletando recursos
+    // No M7 o usuarioId virá do token JWT automaticamente
+    @PatchMapping("/ordem/{ordemId}/lidas/usuario/{usuarioId}")
+    public ResponseEntity<ApiResponse<Void>> marcarComoLida(
+            @PathVariable UUID ordemId,
+            @PathVariable UUID usuarioId) {
+        messageService.marcarComoLida(ordemId, usuarioId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        null,
+                        "Mensagens marcadas como lidas",
+                        HttpStatus.OK.value()
+                ));
+    }
 }
