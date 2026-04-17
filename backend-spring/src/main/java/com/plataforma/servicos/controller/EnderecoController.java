@@ -1,5 +1,6 @@
 package com.plataforma.servicos.controller;
 
+import com.plataforma.servicos.dto.EnderecoDTOS.EnderecoPatchDTO;
 import com.plataforma.servicos.dto.EnderecoDTOS.EnderecoRequestDTO;
 import com.plataforma.servicos.dto.EnderecoDTOS.EnderecoResponseDTO;
 import com.plataforma.servicos.exception.ApiResponse;
@@ -107,6 +108,29 @@ public class EnderecoController {
             @PathVariable UUID usuarioId,
             @Valid @RequestBody EnderecoRequestDTO dto) {
         EnderecoResponseDTO endereco = enderecoService.update(usuarioId, dto);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        endereco,
+                        "Endereço atualizado com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
+
+    // PATCH /api/enderecos/usuario/{usuarioId}
+    // Atualiza campos individuais do endereço
+    // Regra: usuário pode atualizar apenas um campo por vez
+    // Regra: campos não informados (null) não são alterados
+    // Por que PATCH e não PUT?
+    //   PUT → atualiza o recurso inteiro (todos os campos)
+    //   PATCH → atualiza apenas os campos informados
+    // Usado quando usuário quer mudar apenas o número,
+    //   ou apenas o complemento, sem redigitar tudo
+   // No M7 o usuarioId virá do token JWT automaticamente
+    @PatchMapping("/usuario/{usuarioId}")
+    public ResponseEntity<ApiResponse<EnderecoResponseDTO>> patch(
+            @PathVariable UUID usuarioId,
+            @Valid @RequestBody EnderecoPatchDTO dto) {
+        EnderecoResponseDTO endereco = enderecoService.patch(usuarioId, dto);
         return ResponseEntity.ok(
                 ApiResponse.success(
                         endereco,
