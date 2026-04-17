@@ -1,15 +1,14 @@
 package com.plataforma.servicos.controller;
 
+import com.plataforma.servicos.dto.EnderecoDTOS.EnderecoRequestDTO;
 import com.plataforma.servicos.dto.EnderecoDTOS.EnderecoResponseDTO;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.EnderecoService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -69,6 +68,29 @@ public class EnderecoController {
                         endereco,
                         "Endereço do cliente encontrado",
                         HttpStatus.OK.value()
+                ));
+    }
+
+    // CADASTRO
+
+    // POST /api/enderecos/usuario/{usuarioId}
+    // Cadastra endereço após criação da conta
+    // Regra: usuário deve estar ativo
+    // Regra: usuário só pode ter um endereço — unicidade
+    // Regra: endereço não é obrigatório no cadastro —
+    //        pode ser cadastrado depois
+    // No M7 o usuarioId virá do token JWT automaticamente
+    @PostMapping("/usuario/{usuarioId}")
+    public ResponseEntity<ApiResponse<EnderecoResponseDTO>> create(
+            @PathVariable UUID usuarioId,
+            @Valid @RequestBody EnderecoRequestDTO dto) {
+        EnderecoResponseDTO endereco = enderecoService.create(usuarioId, dto);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success(
+                        endereco,
+                        "Endereço cadastrado com sucesso",
+                        HttpStatus.CREATED.value()
                 ));
     }
 }
