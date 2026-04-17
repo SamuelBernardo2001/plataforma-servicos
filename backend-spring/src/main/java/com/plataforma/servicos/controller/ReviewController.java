@@ -98,4 +98,23 @@ public class ReviewController {
                         HttpStatus.OK.value()
                 ));
     }
+
+    // DELETE /api/reviews/{id}/cliente/{clienteId}
+    // Cliente deleta sua própria avaliação
+    // Regra: apenas o próprio cliente que criou pode deletar
+    // Regra: após deletar o cliente pode avaliar novamente
+    //        pois a restrição de duplicata é baseada na existência
+    // No M7 o clienteId virá do token JWT automaticamente
+    @DeleteMapping("/{id}/cliente/{clienteId}")
+    public ResponseEntity<ApiResponse<Void>> delete(
+            @PathVariable UUID id,
+            @PathVariable UUID clienteId) {
+        reviewService.delete(id, clienteId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        null,
+                        "Avaliação removida com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
 }
