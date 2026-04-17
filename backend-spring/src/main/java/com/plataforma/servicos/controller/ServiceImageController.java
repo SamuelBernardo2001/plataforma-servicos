@@ -75,4 +75,23 @@ public class ServiceImageController {
                         HttpStatus.CREATED.value()
                 ));
     }
+
+    // DELETE /api/service-images/{id}/prestador/{prestadorId}
+    // Remove imagem do serviço
+    // Regra: apenas o próprio PRESTADOR dono do serviço pode remover
+    // Regra: imagem deve existir
+    // No M7 o prestadorId virá do token JWT automaticamente
+    // No M7 será integrado com Cloudinary para deletar do storage
+    @DeleteMapping("/{id}/prestador/{prestadorId}")
+    public ResponseEntity<ApiResponse<Void>> removeImage(
+            @PathVariable UUID id,
+            @PathVariable UUID prestadorId) {
+        serviceImageService.removeImage(id, prestadorId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        null,
+                        "Imagem removida com sucesso",
+                        HttpStatus.OK.value()
+                ));
+    }
 }
