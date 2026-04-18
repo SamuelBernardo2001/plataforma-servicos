@@ -8,7 +8,10 @@ import com.plataforma.servicos.mapper.FavoriteMapper;
 import com.plataforma.servicos.repository.FavoriteRepository;
 import com.plataforma.servicos.repository.ServiceRepository;
 import com.plataforma.servicos.repository.UserRepository;
+import com.plataforma.servicos.util.PaginatedResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,17 +30,18 @@ public class FavoriteService {
     private final UserRepository userRepository;
     private final FavoriteMapper favoriteMapper;
 
-    // Lista todos os favoritos do usuário
     // Regra: usuário só vê seus próprios favoritos
     // Regra: usuário deve existir
-    public List<FavoriteResponseDTO> findByUsuario(UUID usuarioId) {
+    // Lista favoritos do usuário com paginação
+    public PaginatedResponse<FavoriteResponseDTO> findByUsuario(
+            UUID usuarioId, Pageable pageable) {
         userRepository.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        return favoriteRepository.findByUsuarioId(usuarioId)
-                .stream()
-                .map(favoriteMapper::toResponseDTO)
-                .collect(Collectors.toList());
+        Page<FavoriteResponseDTO> page = favoriteRepository
+                .findByUsuarioId(usuarioId, pageable)
+                .map(favoriteMapper::toResponseDTO);
+        return PaginatedResponse.of(page);
     }
 
     // Verifica se um serviço é favorito do usuário

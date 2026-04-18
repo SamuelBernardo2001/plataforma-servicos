@@ -7,7 +7,10 @@ import com.plataforma.servicos.mapper.ServiceOrderMapper;
 import com.plataforma.servicos.repository.ServiceOrderRepository;
 import com.plataforma.servicos.repository.ServiceRepository;
 import com.plataforma.servicos.repository.UserRepository;
+import com.plataforma.servicos.util.PaginatedResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,37 +42,40 @@ public class OrderService {
         return serviceOrderMapper.toResponseDTO(order);
     }
 
-    // Lista ordens do cliente
     // Regra: cliente só vê suas próprias ordens
-    public List<ServiceOrderResponseDTO> findByCliente(UUID clienteId) {
+    // Lista ordens do cliente com paginação
+    public PaginatedResponse<ServiceOrderResponseDTO> findByCliente(
+            UUID clienteId, Pageable pageable) {
         userRepository.findById(clienteId)
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
 
-        return serviceOrderRepository.findByClienteId(clienteId)
-                .stream()
-                .map(serviceOrderMapper::toResponseDTO)
-                .collect(Collectors.toList());
+        Page<ServiceOrderResponseDTO> page = serviceOrderRepository
+                .findByClienteId(clienteId, pageable)
+                .map(serviceOrderMapper::toResponseDTO);
+        return PaginatedResponse.of(page);
     }
 
-    // Lista ordens recebidas pelo prestador
     // Regra: prestador só vê suas próprias ordens recebidas
-    public List<ServiceOrderResponseDTO> findByPrestador(UUID prestadorId) {
+    // Lista ordens do prestador com paginação
+    public PaginatedResponse<ServiceOrderResponseDTO> findByPrestador(
+            UUID prestadorId, Pageable pageable) {
         userRepository.findById(prestadorId)
                 .orElseThrow(() -> new RuntimeException("Prestador não encontrado"));
 
-        return serviceOrderRepository.findByPrestadorId(prestadorId)
-                .stream()
-                .map(serviceOrderMapper::toResponseDTO)
-                .collect(Collectors.toList());
+        Page<ServiceOrderResponseDTO> page = serviceOrderRepository
+                .findByPrestadorId(prestadorId, pageable)
+                .map(serviceOrderMapper::toResponseDTO);
+        return PaginatedResponse.of(page);
     }
 
-    // Lista ordens por status
     // Regra: apenas o próprio usuário pode ver suas ordens por status
-    public List<ServiceOrderResponseDTO> findByStatus(UUID usuarioId, OrderStatusEnum status) {
-        return serviceOrderRepository.findByClienteIdAndStatus(usuarioId, status)
-                .stream()
-                .map(serviceOrderMapper::toResponseDTO)
-                .collect(Collectors.toList());
+    // Lista ordens por status com paginação
+    public PaginatedResponse<ServiceOrderResponseDTO> findByStatus(
+            UUID usuarioId, OrderStatusEnum status, Pageable pageable) {
+        Page<ServiceOrderResponseDTO> page = serviceOrderRepository
+                .findByClienteIdAndStatus(usuarioId, status, pageable)
+                .map(serviceOrderMapper::toResponseDTO);
+        return PaginatedResponse.of(page);
     }
 
     // Cria nova ordem de serviço (contratação)

@@ -8,7 +8,10 @@ import com.plataforma.servicos.repository.ReviewRepository;
 import com.plataforma.servicos.repository.ServiceOrderRepository;
 import com.plataforma.servicos.repository.ServiceRepository;
 import com.plataforma.servicos.repository.UserRepository;
+import com.plataforma.servicos.util.PaginatedResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,17 +30,18 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final ReviewMapper reviewMapper;
 
-    // Lista avaliações de um serviço
     // Regra: qualquer pessoa pode ver as avaliações — são públicas
     // Regra: serviço deve existir
-    public List<ReviewResponseDTO> findByService(UUID serviceId) {
+    // Lista avaliações de um serviço com paginação
+    public PaginatedResponse<ReviewResponseDTO> findByService(
+            UUID serviceId, Pageable pageable) {
         serviceRepository.findById(serviceId)
                 .orElseThrow(() -> new RuntimeException("Serviço não encontrado"));
 
-        return reviewRepository.findByServiceId(serviceId)
-                .stream()
-                .map(reviewMapper::toResponseDTO)
-                .collect(Collectors.toList());
+        Page<ReviewResponseDTO> page = reviewRepository
+                .findByServiceId(serviceId, pageable)
+                .map(reviewMapper::toResponseDTO);
+        return PaginatedResponse.of(page);
     }
 
     // Cria avaliação de um serviço
