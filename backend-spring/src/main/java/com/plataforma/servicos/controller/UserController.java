@@ -3,8 +3,12 @@ package com.plataforma.servicos.controller;
 import com.plataforma.servicos.dto.UserDTOS.*;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.UserService;
+import com.plataforma.servicos.util.PaginatedResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,16 +32,21 @@ public class UserController {
 
     private final UserService userService;
 
-    // GET /api/users
     // Lista todos os usuários ativos do sistema
     // Regra: apenas usuários com ativo = true aparecem
     // Quem usa: ADMIN para gerenciar usuários
+    // GET /api/users?page=0&size=20&sort=criadoEm,desc
     @GetMapping
-    public ResponseEntity<ApiResponse<List<UserResponseDTO>>> findAll() {
-        List<UserResponseDTO> users = userService.findAll();
+    public ResponseEntity<ApiResponse<PaginatedResponse<UserResponseDTO>>> findAll(
+            @PageableDefault(size = 20, sort = "criadoEm",
+                    direction = Sort.Direction.DESC) Pageable pageable) {
+        PaginatedResponse<UserResponseDTO> users = userService.findAll(pageable);
         return ResponseEntity.ok(
-                ApiResponse.success(users, "Usuários listados com sucesso", HttpStatus.OK.value())
-        );
+                ApiResponse.success(
+                        users,
+                        "Usuários listados com sucesso",
+                        HttpStatus.OK.value()
+                ));
     }
 
     // GET /api/users/{id}

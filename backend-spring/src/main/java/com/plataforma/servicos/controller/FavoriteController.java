@@ -3,7 +3,11 @@ package com.plataforma.servicos.controller;
 import com.plataforma.servicos.dto.favoriteDTOS.FavoriteResponseDTO;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.FavoriteService;
+import com.plataforma.servicos.util.PaginatedResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,16 +33,19 @@ public class FavoriteController {
     // CONSULTAS
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    // GET /api/favorites/usuario/{usuarioId}
     // Lista todos os favoritos do usuário
     // Regra: usuário só vê seus próprios favoritos
     // Regra: usuário deve existir
     // Usado no frontend para exibir lista de favoritos do usuário
     // No M7 o usuarioId virá do token JWT automaticamente
+    // GET /api/favorites/usuario/{usuarioId}?page=0&size=20
     @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<ApiResponse<List<FavoriteResponseDTO>>> findByUsuario(
-            @PathVariable UUID usuarioId) {
-        List<FavoriteResponseDTO> favorites = favoriteService.findByUsuario(usuarioId);
+    public ResponseEntity<ApiResponse<PaginatedResponse<FavoriteResponseDTO>>> findByUsuario(
+            @PathVariable UUID usuarioId,
+            @PageableDefault(size = 20, sort = "criadoEm",
+                    direction = Sort.Direction.DESC) Pageable pageable) {
+        PaginatedResponse<FavoriteResponseDTO> favorites =
+                favoriteService.findByUsuario(usuarioId, pageable);
         return ResponseEntity.ok(
                 ApiResponse.success(
                         favorites,

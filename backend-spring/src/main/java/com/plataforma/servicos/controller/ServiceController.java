@@ -4,8 +4,12 @@ import com.plataforma.servicos.dto.ServiceDTOS.ServiceRequestDTO;
 import com.plataforma.servicos.dto.ServiceDTOS.ServiceResponseDTO;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.ServicoService;
+import com.plataforma.servicos.util.PaginatedResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,15 +34,17 @@ public class ServiceController {
     // CONSULTAS PÚBLICAS
     // Qualquer pessoa pode ver — sem autenticação
 
-    // GET /api/services
     // Lista todos os serviços ATIVOS do marketplace
     // Regra: apenas serviços com ativo = true aparecem
     // Regra: filtro feito direto no banco via findByAtivo(true)
     // Quem usa: clientes buscando serviços, visitantes
     // No M7 não precisará de autenticação — endpoint público
+    // GET /api/services?page=0&size=20&sort=criadoEm,desc
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ServiceResponseDTO>>> findAll() {
-        List<ServiceResponseDTO> services = serviceService.findAll();
+    public ResponseEntity<ApiResponse<PaginatedResponse<ServiceResponseDTO>>> findAll(
+            @PageableDefault(size = 20, sort = "criadoEm",
+                    direction = Sort.Direction.DESC) Pageable pageable) {
+        PaginatedResponse<ServiceResponseDTO> services = serviceService.findAll(pageable);
         return ResponseEntity.ok(
                 ApiResponse.success(
                         services,
@@ -64,16 +70,19 @@ public class ServiceController {
                 ));
     }
 
-    // GET /api/services/category/{categoriaId}
     // Lista serviços ATIVOS de uma categoria específica
     // Regra: categoria deve existir
     // Regra: apenas serviços ativos da categoria aparecem
     // Regra: filtro feito direto no banco via findByCategoriaIdAndAtivo()
     // Quem usa: cliente filtrando serviços por categoria
+    // GET /api/services/category/{categoriaId}?page=0&size=20
     @GetMapping("/category/{categoriaId}")
-    public ResponseEntity<ApiResponse<List<ServiceResponseDTO>>> findByCategory(
-            @PathVariable UUID categoriaId) {
-        List<ServiceResponseDTO> services = serviceService.findByCategory(categoriaId);
+    public ResponseEntity<ApiResponse<PaginatedResponse<ServiceResponseDTO>>> findByCategory(
+            @PathVariable UUID categoriaId,
+            @PageableDefault(size = 20, sort = "criadoEm",
+                    direction = Sort.Direction.DESC) Pageable pageable) {
+        PaginatedResponse<ServiceResponseDTO> services =
+                serviceService.findByCategory(categoriaId, pageable);
         return ResponseEntity.ok(
                 ApiResponse.success(
                         services,
@@ -82,16 +91,19 @@ public class ServiceController {
                 ));
     }
 
-    // GET /api/services/prestador/{prestadorId}
     // Lista serviços ATIVOS de um prestador específico
     // Usado na página pública do prestador vista pelo cliente
     // Regra: apenas serviços ativos aparecem para o público
     // Regra: filtro via findByPrestadorIdAndAtivo()
     // Quem usa: cliente visitando perfil público do prestador
+    // GET /api/services/prestador/{prestadorId}?page=0&size=20
     @GetMapping("/prestador/{prestadorId}")
-    public ResponseEntity<ApiResponse<List<ServiceResponseDTO>>> findByPrestador(
-            @PathVariable UUID prestadorId) {
-        List<ServiceResponseDTO> services = serviceService.findByPrestador(prestadorId);
+    public ResponseEntity<ApiResponse<PaginatedResponse<ServiceResponseDTO>>> findByPrestador(
+            @PathVariable UUID prestadorId,
+            @PageableDefault(size = 20, sort = "criadoEm",
+                    direction = Sort.Direction.DESC) Pageable pageable) {
+        PaginatedResponse<ServiceResponseDTO> services =
+                serviceService.findByPrestador(prestadorId, pageable);
         return ResponseEntity.ok(
                 ApiResponse.success(
                         services,
@@ -103,16 +115,19 @@ public class ServiceController {
     // PAINEL DO PRESTADOR
     // Apenas o próprio prestador acessa
 
-    // GET /api/services/meus/{prestadorId}
     // Lista TODOS os serviços do prestador (ativos e inativos)
     // Usado no painel do prestador para gerenciar seus serviços
     // Diferente do findByPrestador() que só retorna ativos para o público
     // Regra: prestador vê todos os seus serviços incluindo desativados
     // No M7 o prestadorId virá do token JWT automaticamente
+    // GET /api/services/meus/{prestadorId}?page=0&size=20
     @GetMapping("/meus/{prestadorId}")
-    public ResponseEntity<ApiResponse<List<ServiceResponseDTO>>> findAllByPrestador(
-            @PathVariable UUID prestadorId) {
-        List<ServiceResponseDTO> services = serviceService.findAllByPrestador(prestadorId);
+    public ResponseEntity<ApiResponse<PaginatedResponse<ServiceResponseDTO>>> findAllByPrestador(
+            @PathVariable UUID prestadorId,
+            @PageableDefault(size = 20, sort = "criadoEm",
+                    direction = Sort.Direction.DESC) Pageable pageable) {
+        PaginatedResponse<ServiceResponseDTO> services =
+                serviceService.findAllByPrestador(prestadorId, pageable);
         return ResponseEntity.ok(
                 ApiResponse.success(
                         services,

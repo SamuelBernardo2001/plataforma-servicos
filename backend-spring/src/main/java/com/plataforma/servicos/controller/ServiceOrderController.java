@@ -5,8 +5,12 @@ import com.plataforma.servicos.dto.serviceOrderDTOS.ServiceOrderResponseDTO;
 import com.plataforma.servicos.entity.OrderStatusEnum;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.OrderService;
+import com.plataforma.servicos.util.PaginatedResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -49,16 +53,19 @@ public class ServiceOrderController {
                 ));
     }
 
-    // GET /api/service-orders/cliente/{clienteId}
     // Lista todas as ordens de um cliente
     // Regra: cliente só vê suas próprias ordens
     // Regra: retorna lista vazia se não tiver ordens
     // Usado no painel do cliente para acompanhar contratações
     // No M7 o clienteId virá do token JWT automaticamente
+    // GET /api/service-orders/cliente/{clienteId}?page=0&size=20
     @GetMapping("/cliente/{clienteId}")
-    public ResponseEntity<ApiResponse<List<ServiceOrderResponseDTO>>> findByCliente(
-            @PathVariable UUID clienteId) {
-        List<ServiceOrderResponseDTO> orders = orderService.findByCliente(clienteId);
+    public ResponseEntity<ApiResponse<PaginatedResponse<ServiceOrderResponseDTO>>> findByCliente(
+            @PathVariable UUID clienteId,
+            @PageableDefault(size = 20, sort = "criadoEm",
+                    direction = Sort.Direction.DESC) Pageable pageable) {
+        PaginatedResponse<ServiceOrderResponseDTO> orders =
+                orderService.findByCliente(clienteId, pageable);
         return ResponseEntity.ok(
                 ApiResponse.success(
                         orders,
@@ -67,16 +74,19 @@ public class ServiceOrderController {
                 ));
     }
 
-    // GET /api/service-orders/prestador/{prestadorId}
     // Lista todas as ordens recebidas pelo prestador
     // Regra: prestador só vê suas próprias ordens recebidas
     // Regra: retorna lista vazia se não tiver ordens
     // Usado no painel do prestador para gerenciar pedidos recebidos
     // No M7 o prestadorId virá do token JWT automaticamente
+    // GET /api/service-orders/prestador/{prestadorId}?page=0&size=20
     @GetMapping("/prestador/{prestadorId}")
-    public ResponseEntity<ApiResponse<List<ServiceOrderResponseDTO>>> findByPrestador(
-            @PathVariable UUID prestadorId) {
-        List<ServiceOrderResponseDTO> orders = orderService.findByPrestador(prestadorId);
+    public ResponseEntity<ApiResponse<PaginatedResponse<ServiceOrderResponseDTO>>> findByPrestador(
+            @PathVariable UUID prestadorId,
+            @PageableDefault(size = 20, sort = "criadoEm",
+                    direction = Sort.Direction.DESC) Pageable pageable) {
+        PaginatedResponse<ServiceOrderResponseDTO> orders =
+                orderService.findByPrestador(prestadorId, pageable);
         return ResponseEntity.ok(
                 ApiResponse.success(
                         orders,
@@ -85,17 +95,20 @@ public class ServiceOrderController {
                 ));
     }
 
-    // GET /api/service-orders/cliente/{clienteId}/status/{status}
     // Lista ordens do cliente filtradas por status
     // Regra: cliente só vê suas próprias ordens
     // Usado no painel do cliente para filtrar por situação
     // Ex: ver apenas ordens REQUESTED, ACCEPTED, COMPLETED ou CANCELED
     // No M7 o clienteId virá do token JWT automaticamente
+    // GET /api/service-orders/cliente/{clienteId}/status/{status}?page=0&size=20
     @GetMapping("/cliente/{clienteId}/status/{status}")
-    public ResponseEntity<ApiResponse<List<ServiceOrderResponseDTO>>> findByStatus(
+    public ResponseEntity<ApiResponse<PaginatedResponse<ServiceOrderResponseDTO>>> findByStatus(
             @PathVariable UUID clienteId,
-            @PathVariable OrderStatusEnum status) {
-        List<ServiceOrderResponseDTO> orders = orderService.findByStatus(clienteId, status);
+            @PathVariable OrderStatusEnum status,
+            @PageableDefault(size = 20, sort = "criadoEm",
+                    direction = Sort.Direction.DESC) Pageable pageable) {
+        PaginatedResponse<ServiceOrderResponseDTO> orders =
+                orderService.findByStatus(clienteId, status, pageable);
         return ResponseEntity.ok(
                 ApiResponse.success(
                         orders,

@@ -4,8 +4,12 @@ import com.plataforma.servicos.dto.reviewDTOS.ReviewRequestDTO;
 import com.plataforma.servicos.dto.reviewDTOS.ReviewResponseDTO;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.ReviewService;
+import com.plataforma.servicos.util.PaginatedResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,16 +36,19 @@ public class ReviewController {
     // Qualquer pessoa pode ver as avaliações
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    // GET /api/reviews/service/{serviceId}
     // Lista todas as avaliações de um serviço
     // Regra: avaliações são públicas — qualquer pessoa pode ver
     // Regra: serviço deve existir
     // Usado no frontend para exibir avaliações na página do serviço
     // Importante para credibilidade do marketplace
+    // GET /api/reviews/service/{serviceId}?page=0&size=20
     @GetMapping("/service/{serviceId}")
-    public ResponseEntity<ApiResponse<List<ReviewResponseDTO>>> findByService(
-            @PathVariable UUID serviceId) {
-        List<ReviewResponseDTO> reviews = reviewService.findByService(serviceId);
+    public ResponseEntity<ApiResponse<PaginatedResponse<ReviewResponseDTO>>> findByService(
+            @PathVariable UUID serviceId,
+            @PageableDefault(size = 20, sort = "criadoEm",
+                    direction = Sort.Direction.DESC) Pageable pageable) {
+        PaginatedResponse<ReviewResponseDTO> reviews =
+                reviewService.findByService(serviceId, pageable);
         return ResponseEntity.ok(
                 ApiResponse.success(
                         reviews,

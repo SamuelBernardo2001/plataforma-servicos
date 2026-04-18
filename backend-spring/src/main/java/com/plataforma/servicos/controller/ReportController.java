@@ -5,8 +5,12 @@ import com.plataforma.servicos.dto.reportDTOS.ReportResponseDTO;
 import com.plataforma.servicos.entity.ReportStatusEnum;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.ReportService;
+import com.plataforma.servicos.util.PaginatedResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,17 +37,20 @@ public class ReportController {
     // Apenas ADMIN pode ver as denúncias
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    // GET /api/reports/admin/{adminId}
     // Lista todas as denúncias do sistema
     // Regra: apenas ADMIN pode ver todas as denúncias
     // Regra: retorna lista com todos os status
     //        (PENDENTE, RESOLVIDA, REJEITADA)
     // Usado no painel de moderação do ADMIN
     // No M7 o adminId virá do token JWT automaticamente
+    // GET /api/reports/admin/{adminId}?page=0&size=20
     @GetMapping("/admin/{adminId}")
-    public ResponseEntity<ApiResponse<List<ReportResponseDTO>>> findAll(
-            @PathVariable UUID adminId) {
-        List<ReportResponseDTO> reports = reportService.findAll(adminId);
+    public ResponseEntity<ApiResponse<PaginatedResponse<ReportResponseDTO>>> findAll(
+            @PathVariable UUID adminId,
+            @PageableDefault(size = 20, sort = "criadoEm",
+                    direction = Sort.Direction.DESC) Pageable pageable) {
+        PaginatedResponse<ReportResponseDTO> reports =
+                reportService.findAll(adminId, pageable);
         return ResponseEntity.ok(
                 ApiResponse.success(
                         reports,
@@ -52,7 +59,6 @@ public class ReportController {
                 ));
     }
 
-    // GET /api/reports/admin/{adminId}/status/{status}
     // Lista denúncias filtradas por status
     // Regra: apenas ADMIN pode filtrar denúncias
     // Usado no painel de moderação para o ADMIN
@@ -61,11 +67,15 @@ public class ReportController {
     //     GET .../status/RESOLVIDA → só denúncias já resolvidas
     //     GET .../status/REJEITADA → só denúncias rejeitadas
     // No M7 o adminId virá do token JWT automaticamente
+    // GET /api/reports/admin/{adminId}/status/{status}?page=0&size=20
     @GetMapping("/admin/{adminId}/status/{status}")
-    public ResponseEntity<ApiResponse<List<ReportResponseDTO>>> findByStatus(
+    public ResponseEntity<ApiResponse<PaginatedResponse<ReportResponseDTO>>> findByStatus(
             @PathVariable UUID adminId,
-            @PathVariable ReportStatusEnum status) {
-        List<ReportResponseDTO> reports = reportService.findByStatus(adminId, status);
+            @PathVariable ReportStatusEnum status,
+            @PageableDefault(size = 20, sort = "criadoEm",
+                    direction = Sort.Direction.DESC) Pageable pageable) {
+        PaginatedResponse<ReportResponseDTO> reports =
+                reportService.findByStatus(adminId, status, pageable);
         return ResponseEntity.ok(
                 ApiResponse.success(
                         reports,
