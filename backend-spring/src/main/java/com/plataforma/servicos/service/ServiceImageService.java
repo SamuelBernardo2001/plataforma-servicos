@@ -10,8 +10,11 @@ import com.plataforma.servicos.mapper.ServiceImageMapper;
 import com.plataforma.servicos.repository.ServiceImageRepository;
 import com.plataforma.servicos.repository.ServiceRepository;
 import com.plataforma.servicos.repository.UserRepository;
+import com.plataforma.servicos.util.PaginatedResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,18 +35,21 @@ public class ServiceImageService {
     // profissionalmente sem sobrecarregar o sistema
     private static final int MAX_IMAGENS_POR_SERVICO = 10;
 
-    // Lista todas as imagens de um serviço
     // Regra: qualquer pessoa pode ver as imagens — são públicas
     // Regra: serviço deve existir
     // Usado no frontend para exibir galeria de imagens do serviço
-    public List<ServiceImageResponseDTO> findByService(UUID serviceId) {
+    // Lista todas as imagens de um serviço com paginação
+    // Mesmo com limite de 10 imagens mantemos paginação
+    // para consistência com o padrão do sistema
+    public PaginatedResponse<ServiceImageResponseDTO> findByService(
+            UUID serviceId, Pageable pageable) {
         serviceRepository.findById(serviceId)
                 .orElseThrow(() -> new RuntimeException("Serviço não encontrado"));
 
-        return serviceImageRepository.findByServiceId(serviceId)
-                .stream()
-                .map(serviceImageMapper::toResponseDTO)
-                .collect(Collectors.toList());
+        Page<ServiceImageResponseDTO> page = serviceImageRepository
+                .findByServiceId(serviceId, pageable)
+                .map(serviceImageMapper::toResponseDTO);
+        return PaginatedResponse.of(page);
     }
 
     // Adiciona imagem ao serviço

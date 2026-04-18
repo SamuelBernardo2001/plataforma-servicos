@@ -4,8 +4,12 @@ import com.plataforma.servicos.dto.CategoryDTOS.CategoryRequestDTO;
 import com.plataforma.servicos.dto.CategoryDTOS.CategoryResponseDTO;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.CategoryService;
+import com.plataforma.servicos.util.PaginatedResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,15 +34,17 @@ public class CategoryController {
     // CONSULTAS PÚBLICAS
     // Qualquer pessoa pode ver — sem autenticação
 
-    // GET /api/categories
     // Lista todas as categorias ATIVAS do sistema
     // Regra: apenas categorias com ativo = true aparecem
     // Regra: filtro feito direto no banco via findByAtivo(true)
     // Quem usa: cliente ao buscar serviços, prestador ao cadastrar serviço
     // No M7 não precisará de autenticação — endpoint público
+    // GET /api/categories?page=0&size=20&sort=nome,asc
     @GetMapping
-    public ResponseEntity<ApiResponse<List<CategoryResponseDTO>>> findAll() {
-        List<CategoryResponseDTO> categories = categoryService.findAll();
+    public ResponseEntity<ApiResponse<PaginatedResponse<CategoryResponseDTO>>> findAll(
+            @PageableDefault(size = 20, sort = "nome",
+                    direction = Sort.Direction.ASC) Pageable pageable) {
+        PaginatedResponse<CategoryResponseDTO> categories = categoryService.findAll(pageable);
         return ResponseEntity.ok(
                 ApiResponse.success(
                         categories,

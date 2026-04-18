@@ -4,8 +4,12 @@ import com.plataforma.servicos.dto.serviceImagesDTO.ServiceImageRequestDTO;
 import com.plataforma.servicos.dto.serviceImagesDTO.ServiceImageResponseDTO;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.ServiceImageService;
+import com.plataforma.servicos.util.PaginatedResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,10 +42,14 @@ public class ServiceImageController {
     // Regra: serviço deve existir
     // Usado no frontend para exibir galeria de fotos do serviço
     // Cliente visualiza antes de contratar
+    // GET /api/v1/service-images/service/{serviceId}?page=0&size=5
     @GetMapping("/service/{serviceId}")
-    public ResponseEntity<ApiResponse<List<ServiceImageResponseDTO>>> findByService(
-            @PathVariable UUID serviceId) {
-        List<ServiceImageResponseDTO> images = serviceImageService.findByService(serviceId);
+    public ResponseEntity<ApiResponse<PaginatedResponse<ServiceImageResponseDTO>>> findByService(
+            @PathVariable UUID serviceId,
+            @PageableDefault(size = 5, sort = "id",
+                    direction = Sort.Direction.ASC) Pageable pageable) {
+        PaginatedResponse<ServiceImageResponseDTO> images =
+                serviceImageService.findByService(serviceId, pageable);
         return ResponseEntity.ok(
                 ApiResponse.success(
                         images,
