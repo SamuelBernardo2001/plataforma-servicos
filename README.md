@@ -176,4 +176,36 @@ e regras de negócio completas do sistema.
 
 ### 🔜 Próximo Módulo
 **M5 – API REST** — Controllers + endpoints padronizados
-com `ApiResponse`, paginação obrigatória e versionamento `/api/v1/`
+com `ApiResponse`, paginação obrigatória e versionamento `/api/`
+
+### ✅ M5 — API REST
+- `ApiResponse<T>` padronizado em todos os endpoints
+- `GlobalExceptionHandler` para tratamento centralizado de erros
+- `PaginatedResponse<T>` em todas as listagens
+- Versionamento `/api/` em todos os endpoints
+- `@PageableDefault(size = 20)` como padrão global
+
+**Controllers criados:**
+- `UserController` → cadastro, login, perfil, senha, desativar
+- `ServiceController` → CRUD, painel do prestador, média de avaliações
+- `CategoryController` → CRUD completo (apenas ADMIN)
+- `ServiceOrderController` → fluxo completo de status
+- `ReviewController` → avaliação pós COMPLETED, edição, moderação
+- `FavoriteController` → toggle com unicidade
+- `EnderecoController` → CRUD com edição parcial e privacidade
+- `ReportController` → denúncias com moderação ADMIN
+- `MessageController` → chat paginado com edição
+- `ServiceImageController` → galeria com limite de 5 por serviço
+
+**Migrations adicionais:**
+- V9__create_table_reports
+- V10__create_table_messages
+- V11__alter_table_reviews_add_editado
+- V12__alter_table_service_images
+
+---
+
+### 🔜 Próximo Módulo
+**M6 – Segurança JWT** — Spring Security + JWT +
+Refresh Token + controle de acesso por roles
+(CLIENTE, PRESTADOR, ADMIN)
