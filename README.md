@@ -19,6 +19,8 @@ Marketplace de serviços locais que conecta prestadores (construção, barbearia
 - GitHub Actions (CI/CD)
 
 ## Estrutura do Projeto
+
+```bash
 plataforma-servicos/
 ├── backend-spring/     # API REST Java/Spring Boot
 ├── frontend-angular/   # App Angular
@@ -28,6 +30,7 @@ plataforma-servicos/
 │   ├── api/            # Documentação dos endpoints REST
 │   └── arquitetura/    # Diagramas e decisões arquiteturais
 └── .github/workflows/  # CI/CD
+```
 
 ## Como rodar localmente
 
