@@ -10,7 +10,10 @@ import com.plataforma.servicos.mapper.ServiceMapper;
 import com.plataforma.servicos.repository.CategoryRepository;
 import com.plataforma.servicos.repository.ServiceRepository;
 import com.plataforma.servicos.repository.UserRepository;
+import com.plataforma.servicos.util.PaginatedResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,44 +45,47 @@ public class ServicoService {
         return serviceMapper.toResponseDTO(service);
     }
 
-    // Lista todos os serviços ativos
+
     // Regra: apenas serviços ativos aparecem na listagem pública
     // Usa findByAtivo() — filtra direto no banco: WHERE ativo = true
-    public List<ServiceResponseDTO> findAll() {
-        return serviceRepository.findByAtivo(true)
-                .stream()
-                .map(serviceMapper::toResponseDTO)
-                .collect(Collectors.toList());
+    // Lista todos os serviços ativos com paginação
+    public PaginatedResponse<ServiceResponseDTO> findAll(Pageable pageable) {
+        Page<ServiceResponseDTO> page = serviceRepository
+                .findByAtivo(true, pageable)
+                .map(serviceMapper::toResponseDTO);
+        return PaginatedResponse.of(page);
     }
 
-    // Lista serviços ativos por categoria
     // Regra: categoria deve existir
     // Regra: apenas serviços ativos da categoria aparecem
     // Usa findByCategoriaIdAndAtivo() — filtra direto no banco:
     // WHERE categoria_id = ? AND ativo = true
-    public List<ServiceResponseDTO> findByCategory(UUID categoriaId) {
+    // Lista serviços ativos por categoria com paginação
+    public PaginatedResponse<ServiceResponseDTO> findByCategory(
+            UUID categoriaId, Pageable pageable) {
         categoryRepository.findById(categoriaId)
                 .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
 
-        return serviceRepository.findByCategoriaIdAndAtivo(categoriaId, true)
-                .stream()
-                .map(serviceMapper::toResponseDTO)
-                .collect(Collectors.toList());
+        Page<ServiceResponseDTO> page = serviceRepository
+                .findByCategoriaIdAndAtivo(categoriaId, true, pageable)
+                .map(serviceMapper::toResponseDTO);
+        return PaginatedResponse.of(page);
     }
 
-    // Lista serviços ativos de um prestador específico
     // Usado na página pública do prestador vista pelo cliente
     // Regra: prestador deve existir
     // Regra: apenas serviços ativos aparecem para o público
     // Usa findByPrestadorIdAndAtivo() — filtra direto no banco
-    public List<ServiceResponseDTO> findByPrestador(UUID prestadorId) {
+    // Lista serviços ativos do prestador (público) com paginação
+    public PaginatedResponse<ServiceResponseDTO> findByPrestador(
+            UUID prestadorId, Pageable pageable) {
         userRepository.findById(prestadorId)
                 .orElseThrow(() -> new RuntimeException("Prestador não encontrado"));
 
-        return serviceRepository.findByPrestadorIdAndAtivo(prestadorId, true)
-                .stream()
-                .map(serviceMapper::toResponseDTO)
-                .collect(Collectors.toList());
+        Page<ServiceResponseDTO> page = serviceRepository
+                .findByPrestadorIdAndAtivo(prestadorId, true, pageable)
+                .map(serviceMapper::toResponseDTO);
+        return PaginatedResponse.of(page);
     }
 
     // Lista TODOS os serviços de um prestador (ativos e inativos)
@@ -87,14 +93,16 @@ public class ServicoService {
     // Regra: prestador deve existir
     // Regra: prestador vê todos os seus serviços inclusive os desativados
     // Usa findByPrestadorId() — filtra direto no banco:
-    public List<ServiceResponseDTO> findAllByPrestador(UUID prestadorId) {
+    // Lista todos os serviços do prestador (painel) com paginação
+    public PaginatedResponse<ServiceResponseDTO> findAllByPrestador(
+            UUID prestadorId, Pageable pageable) {
         userRepository.findById(prestadorId)
                 .orElseThrow(() -> new RuntimeException("Prestador não encontrado"));
 
-        return serviceRepository.findByPrestadorId(prestadorId)
-                .stream()
-                .map(serviceMapper::toResponseDTO)
-                .collect(Collectors.toList());
+        Page<ServiceResponseDTO> page = serviceRepository
+                .findByPrestadorId(prestadorId, pageable)
+                .map(serviceMapper::toResponseDTO);
+        return PaginatedResponse.of(page);
     }
 
     // Cria novo serviço

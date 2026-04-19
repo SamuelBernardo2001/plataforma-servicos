@@ -8,7 +8,10 @@ import com.plataforma.servicos.entity.UserModel;
 import com.plataforma.servicos.mapper.CategoryMapper;
 import com.plataforma.servicos.repository.CategoryRepository;
 import com.plataforma.servicos.repository.UserRepository;
+import com.plataforma.servicos.util.PaginatedResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,11 +31,14 @@ public class CategoryService {
     // Lista todas as categorias ativas
     // Regra: qualquer pessoa pode ver as categorias — são públicas
     // Usa findByAtivo() — filtra direto no banco: WHERE ativo = true
-    public List<CategoryResponseDTO> findAll() {
-        return categoryRepository.findByAtivo(true)
-                .stream()
-                .map(categoryMapper::toResponseDTO)
-                .collect(Collectors.toList());
+    // Lista todas as categorias ativas com paginação
+    // Regra: apenas categorias com ativo = true aparecem
+    // Filtro direto no banco via findByAtivo(true)
+    public PaginatedResponse<CategoryResponseDTO> findAll(Pageable pageable) {
+        Page<CategoryResponseDTO> page = categoryRepository
+                .findByAtivo(true, pageable)
+                .map(categoryMapper::toResponseDTO);
+        return PaginatedResponse.of(page);
     }
 
     // Busca categoria por ID

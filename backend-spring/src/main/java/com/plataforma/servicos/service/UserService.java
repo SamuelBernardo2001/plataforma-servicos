@@ -1,14 +1,14 @@
 package com.plataforma.servicos.service;
 
-import com.plataforma.servicos.dto.UserDTOS.UserPasswordDTO;
-import com.plataforma.servicos.dto.UserDTOS.UserRequestDTO;
-import com.plataforma.servicos.dto.UserDTOS.UserResponseDTO;
-import com.plataforma.servicos.dto.UserDTOS.UserUpdateDTO;
+import com.plataforma.servicos.dto.UserDTOS.*;
 import com.plataforma.servicos.entity.UserModel;
 import com.plataforma.servicos.mapper.UserMapper;
 import com.plataforma.servicos.repository.UserRepository;
+import com.plataforma.servicos.util.PaginatedResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -37,13 +37,14 @@ public class UserService {
         return userMapper.toResponseDTO(user);
     }
 
-    // Lista todos os usuários ativos
-    public List<UserResponseDTO> findAll() {
-        return userRepository.findAll()
-                .stream()
-                .filter(user -> Boolean.TRUE.equals(user.getAtivo()))
-                .map(userMapper::toResponseDTO)
-                .collect(Collectors.toList());
+    // Lista todos os usuários ativos com paginação
+    // Regra: apenas usuários com ativo = true aparecem
+    // Filtro feito direto no banco via findByAtivo()
+    public PaginatedResponse<UserResponseDTO> findAll(Pageable pageable) {
+        Page<UserResponseDTO> page = userRepository
+                .findByAtivo(true, pageable)
+                .map(userMapper::toResponseDTO);
+        return PaginatedResponse.of(page);
     }
 
     // Cria novo usuário
@@ -118,6 +119,29 @@ public class UserService {
         user.setAtualizadoEm(LocalDateTime.now());
 
         userRepository.save(user);
+    }
+
+    // Autentica usuário com email e senha
+// Regra: email deve existir no sistema
+// Regra: senha deve ser igual à cadastrada
+// Regra: usuário deve estar ativo
+// No M7 a senha será comparada com BCrypt
+    public UserResponseDTO login(UserLoginDTO dto) {
+        UserModel user = userRepository.findByEmail(dto.email())
+                .orElseThrow(() -> new RuntimeException("Email ou senha inválidos"));
+
+        // Valida se usuário está ativo
+        if (Boolean.FALSE.equals(user.getAtivo())) {
+            throw new RuntimeException("Usuário inativo — entre em contato com o suporte");
+        }
+
+        // Valida senha — no M7 será substituído por BCrypt
+        // passwordEncoder.matches(dto.senha(), user.getSenha())
+        if (!user.getSenha().equals(dto.senha())) {
+            throw new RuntimeException("Email ou senha inválidos");
+        }
+
+        return userMapper.toResponseDTO(user);
     }
     }
 

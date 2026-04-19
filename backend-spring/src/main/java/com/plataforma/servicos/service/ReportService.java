@@ -7,7 +7,10 @@ import com.plataforma.servicos.mapper.ReportMapper;
 import com.plataforma.servicos.repository.ReportRepository;
 import com.plataforma.servicos.repository.ServiceOrderRepository;
 import com.plataforma.servicos.repository.UserRepository;
+import com.plataforma.servicos.util.PaginatedResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,9 +28,10 @@ public class ReportService {
     private final ServiceOrderRepository serviceOrderRepository;
     private final ReportMapper reportMapper;
 
-    // Lista todas as denúncias
     // Regra: apenas ADMIN pode ver todas as denúncias
-    public List<ReportResponseDTO> findAll(UUID adminId) {
+    // Lista todas as denúncias com paginação (ADMIN)
+    public PaginatedResponse<ReportResponseDTO> findAll(
+            UUID adminId, Pageable pageable) {
         UserModel admin = userRepository.findById(adminId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
@@ -35,16 +39,17 @@ public class ReportService {
             throw new RuntimeException("Apenas administradores podem ver as denúncias");
         }
 
-        return reportRepository.findAll()
-                .stream()
-                .map(reportMapper::toResponseDTO)
-                .collect(Collectors.toList());
+        Page<ReportResponseDTO> page = reportRepository
+                .findAll(pageable)
+                .map(reportMapper::toResponseDTO);
+        return PaginatedResponse.of(page);
     }
 
-    // Lista denúncias por status
     // Regra: apenas ADMIN pode filtrar denúncias por status
     // Usado para o ADMIN gerenciar denúncias pendentes separadas das resolvidas
-    public List<ReportResponseDTO> findByStatus(UUID adminId, ReportStatusEnum status) {
+    // Lista denúncias por status com paginação (ADMIN)
+    public PaginatedResponse<ReportResponseDTO> findByStatus(
+            UUID adminId, ReportStatusEnum status, Pageable pageable) {
         UserModel admin = userRepository.findById(adminId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
@@ -52,10 +57,10 @@ public class ReportService {
             throw new RuntimeException("Apenas administradores podem ver as denúncias");
         }
 
-        return reportRepository.findByStatus(status)
-                .stream()
-                .map(reportMapper::toResponseDTO)
-                .collect(Collectors.toList());
+        Page<ReportResponseDTO> page = reportRepository
+                .findByStatus(status, pageable)
+                .map(reportMapper::toResponseDTO);
+        return PaginatedResponse.of(page);
     }
 
     // Cria denúncia
