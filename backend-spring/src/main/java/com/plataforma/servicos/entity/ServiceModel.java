@@ -40,8 +40,8 @@ public class ServiceModel {
     private UserModel prestador;
 
     // Muitos serviços pertencem a uma categoria
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "categoria_id", nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER) // Em vez de LAZY
+    @JoinColumn(name = "categoria_id")
     private CategoryModel categoria;
 
     @Builder.Default
