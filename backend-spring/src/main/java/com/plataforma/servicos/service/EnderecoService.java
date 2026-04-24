@@ -19,6 +19,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class EnderecoService {
 
     private final EnderecoRepository enderecoRepository;
