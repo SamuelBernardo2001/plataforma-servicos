@@ -1,0 +1,1 @@
+ALTER TABLE services ADD COLUMN telefone_contato VARCHAR(20);
