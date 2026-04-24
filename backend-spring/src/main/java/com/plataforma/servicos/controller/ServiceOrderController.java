@@ -6,6 +6,10 @@ import com.plataforma.servicos.entity.OrderStatusEnum;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.OrderService;
 import com.plataforma.servicos.util.PaginatedResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +32,7 @@ import java.util.UUID;
 // @RequiredArgsConstructor → injeta OrderService via construtor
 // Padrão recomendado pelo Spring — mais seguro que @Autowired
 @RequiredArgsConstructor
+@Tag(name = "Ordens de Serviço", description = "Endpoints para gestão do ciclo de vida das contratações (Service Orders)")
 public class ServiceOrderController {
 
     private final OrderService orderService;
@@ -40,6 +45,11 @@ public class ServiceOrderController {
     // Regra: retorna erro se UUID for inválido
     // Regra: retorna erro se ordem não existir
     // No M7 o usuarioId virá do token JWT automaticamente
+    @Operation(summary = "Buscar ordem por ID", description = "Retorna os detalhes de uma ordem específica. Apenas o cliente ou o prestador envolvidos podem visualizar.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Ordem encontrada com sucesso"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Ordem não encontrada ou usuário sem permissão")
+    })
     @GetMapping("/{id}/usuario/{usuarioId}")
     public ResponseEntity<ApiResponse<ServiceOrderResponseDTO>> findById(
             @PathVariable UUID id,
@@ -59,6 +69,7 @@ public class ServiceOrderController {
     // Usado no painel do cliente para acompanhar contratações
     // No M7 o clienteId virá do token JWT automaticamente
     // GET /api/service-orders/cliente/{clienteId}?page=0&size=20
+    @Operation(summary = "Listar ordens do cliente", description = "Retorna uma lista paginada de todas as ordens solicitadas por um cliente específico.")
     @GetMapping("/cliente/{clienteId}")
     public ResponseEntity<ApiResponse<PaginatedResponse<ServiceOrderResponseDTO>>> findByCliente(
             @PathVariable UUID clienteId,
@@ -80,6 +91,7 @@ public class ServiceOrderController {
     // Usado no painel do prestador para gerenciar pedidos recebidos
     // No M7 o prestadorId virá do token JWT automaticamente
     // GET /api/service-orders/prestador/{prestadorId}?page=0&size=20
+    @Operation(summary = "Listar ordens do prestador", description = "Retorna uma lista paginada de todas as ordens recebidas por um prestador de serviços.")
     @GetMapping("/prestador/{prestadorId}")
     public ResponseEntity<ApiResponse<PaginatedResponse<ServiceOrderResponseDTO>>> findByPrestador(
             @PathVariable UUID prestadorId,
@@ -101,6 +113,7 @@ public class ServiceOrderController {
     // Ex: ver apenas ordens REQUESTED, ACCEPTED, COMPLETED ou CANCELED
     // No M7 o clienteId virá do token JWT automaticamente
     // GET /api/service-orders/cliente/{clienteId}/status/{status}?page=0&size=20
+    @Operation(summary = "Filtrar ordens do cliente por status", description = "Retorna ordens de um cliente filtradas por um status específico (ex: REQUESTED, COMPLETED).")
     @GetMapping("/cliente/{clienteId}/status/{status}")
     public ResponseEntity<ApiResponse<PaginatedResponse<ServiceOrderResponseDTO>>> findByStatus(
             @PathVariable UUID clienteId,
@@ -128,6 +141,11 @@ public class ServiceOrderController {
     // Regra: cliente não pode ter ordem REQUESTED ou ACCEPTED
     //        para o mesmo serviço — sem duplicata ativa
     // No M7 o clienteId virá do token JWT automaticamente
+    @Operation(summary = "Criar nova ordem", description = "Inicia um processo de contratação. O sistema valida se o serviço está ativo e se o cliente já possui ordens em aberto para o mesmo serviço.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Ordem criada com sucesso"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Violação de regra de negócio ou erro de validação")
+    })
     @PostMapping("/cliente/{clienteId}")
     public ResponseEntity<ApiResponse<ServiceOrderResponseDTO>> create(
             @PathVariable UUID clienteId,
@@ -160,11 +178,13 @@ public class ServiceOrderController {
     //   PUT → atualiza o recurso inteiro
     //   PATCH → atualiza apenas um campo (status)
     // No M7 o usuarioId virá do token JWT automaticamente
+    @Operation(summary = "Atualizar status da ordem", description = "Gerencia a transição de estados da ordem (Aceitar, Cancelar, Concluir).")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Status atualizado com sucesso")
     @PatchMapping("/{id}/status/usuario/{usuarioId}")
     public ResponseEntity<ApiResponse<ServiceOrderResponseDTO>> updateStatus(
             @PathVariable UUID id,
             @PathVariable UUID usuarioId,
-            @RequestParam OrderStatusEnum novoStatus) {
+            @Parameter(description = "Novo status desejado para a ordem") @RequestParam OrderStatusEnum novoStatus) {
         ServiceOrderResponseDTO order = orderService.updateStatus(id, usuarioId, novoStatus);
         return ResponseEntity.ok(
                 ApiResponse.success(
@@ -182,6 +202,7 @@ public class ServiceOrderController {
     // Regra: retorna true se existe ordem COMPLETED
     //        retorna false se não existe
     // Isso garante que avaliação só aparece após contratação real
+    @Operation(summary = "Verificar se contratação foi concluída", description = "Retorna um booleano indicando se o cliente já completou uma ordem para este serviço. Útil para liberar formulários de avaliação.")
     @GetMapping("/verificar-concluida")
     public ResponseEntity<ApiResponse<Boolean>> verificarOrdemConcluida(
             @RequestParam UUID clienteId,

@@ -5,6 +5,9 @@ import com.plataforma.servicos.dto.ServiceDTOS.ServiceResponseDTO;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.ServicoService;
 import com.plataforma.servicos.util.PaginatedResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +30,7 @@ import java.util.UUID;
 // @RequiredArgsConstructor → injeta ServiceService via construtor
 // Padrão recomendado pelo Spring — mais seguro que @Autowired
 @RequiredArgsConstructor
+@Tag(name = "Serviços", description = "Endpoints para gerenciamento do catálogo de serviços do marketplace")
 public class ServiceController {
 
     private final ServicoService serviceService;
@@ -40,6 +44,8 @@ public class ServiceController {
     // Quem usa: clientes buscando serviços, visitantes
     // No M7 não precisará de autenticação — endpoint público
     // GET /api/services?page=0&size=20&sort=criadoEm,desc
+    @Operation(summary = "Listar todos os serviços ativos", description = "Retorna uma lista paginada de todos os serviços disponíveis no marketplace (status ativo=true).")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Serviços listados com sucesso")
     @GetMapping
     public ResponseEntity<ApiResponse<PaginatedResponse<ServiceResponseDTO>>> findAll(
             @PageableDefault(size = 20, sort = "criadoEm",
@@ -58,6 +64,11 @@ public class ServiceController {
     // Regra: serviço desativado não é encontrado
     // Regra: retorna erro se UUID for inválido
     // Quem usa: cliente visualizando detalhes do serviço
+    @Operation(summary = "Buscar serviço por ID", description = "Retorna os detalhes de um serviço específico. Serviços desativados não serão encontrados.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Serviço encontrado"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Serviço não encontrado ou inativo")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ServiceResponseDTO>> findById(
             @PathVariable UUID id) {
@@ -76,6 +87,7 @@ public class ServiceController {
     // Regra: filtro feito direto no banco via findByCategoriaIdAndAtivo()
     // Quem usa: cliente filtrando serviços por categoria
     // GET /api/services/category/{categoriaId}?page=0&size=20
+    @Operation(summary = "Filtrar por categoria", description = "Retorna serviços ativos pertencentes a uma categoria específica.")
     @GetMapping("/category/{categoriaId}")
     public ResponseEntity<ApiResponse<PaginatedResponse<ServiceResponseDTO>>> findByCategory(
             @PathVariable UUID categoriaId,
@@ -97,6 +109,7 @@ public class ServiceController {
     // Regra: filtro via findByPrestadorIdAndAtivo()
     // Quem usa: cliente visitando perfil público do prestador
     // GET /api/services/prestador/{prestadorId}?page=0&size=20
+    @Operation(summary = "Listar serviços ativos de um prestador", description = "Retorna os serviços de um prestador que estão visíveis para o público.")
     @GetMapping("/prestador/{prestadorId}")
     public ResponseEntity<ApiResponse<PaginatedResponse<ServiceResponseDTO>>> findByPrestador(
             @PathVariable UUID prestadorId,
@@ -121,6 +134,7 @@ public class ServiceController {
     // Regra: prestador vê todos os seus serviços incluindo desativados
     // No M7 o prestadorId virá do token JWT automaticamente
     // GET /api/services/meus/{prestadorId}?page=0&size=20
+    @Operation(summary = "Listar todos os meus serviços (Prestador)", description = "Retorna todos os serviços do prestador, incluindo os desativados. Uso exclusivo do painel administrativo do prestador.")
     @GetMapping("/meus/{prestadorId}")
     public ResponseEntity<ApiResponse<PaginatedResponse<ServiceResponseDTO>>> findAllByPrestador(
             @PathVariable UUID prestadorId,
@@ -149,6 +163,11 @@ public class ServiceController {
     //   @NotNull e @Positive em preco
     //   @NotNull em categoriaId
     // No M7 o prestadorId virá do token JWT automaticamente
+    @Operation(summary = "Criar novo serviço", description = "Permite que um prestador ativo cadastre um novo serviço vinculado a uma categoria ativa.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Serviço cadastrado com sucesso"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Erro de validação ou prestador/categoria inválidos")
+    })
     @PostMapping("/prestador/{prestadorId}")
     public ResponseEntity<ApiResponse<ServiceResponseDTO>> create(
             @PathVariable UUID prestadorId,
@@ -170,6 +189,8 @@ public class ServiceController {
     // Regra: nova categoria deve existir e estar ativa
     // @Valid → valida ServiceRequestDTO
     // No M7 o prestadorId virá do token JWT automaticamente
+    @Operation(summary = "Atualizar serviço", description = "Atualiza os dados de um serviço existente. Apenas serviços ativos podem ser editados pelo próprio dono.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Serviço atualizado com sucesso")
     @PutMapping("/{id}/prestador/{prestadorId}")
     public ResponseEntity<ApiResponse<ServiceResponseDTO>> update(
             @PathVariable UUID id,
@@ -191,6 +212,8 @@ public class ServiceController {
     // Regra: serviço desativado não aparece nas listagens públicas
     // Regra: prestador ainda vê o serviço desativado no painel
     // No M7 o prestadorId virá do token JWT automaticamente
+    @Operation(summary = "Desativar serviço", description = "Realiza a desativação lógica (soft delete) do serviço. O serviço deixará de aparecer nas buscas públicas.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Serviço desativado com sucesso")
     @DeleteMapping("/{id}/prestador/{prestadorId}")
     public ResponseEntity<ApiResponse<Void>> deactivate(
             @PathVariable UUID id,
@@ -210,6 +233,8 @@ public class ServiceController {
     // Retorna a média de avaliações de um serviço
     // Regra: retorna 0.0 se não houver avaliações
     // Quem usa: frontend para exibir estrelas na listagem
+    @Operation(summary = "Obter média de avaliação", description = "Retorna a nota média (0.0 a 5.0) de um serviço baseada nas avaliações dos clientes.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Média calculada com sucesso")
     @GetMapping("/{id}/media-avaliacao")
     public ResponseEntity<ApiResponse<Double>> getMediaAvaliacao(
             @PathVariable UUID id) {

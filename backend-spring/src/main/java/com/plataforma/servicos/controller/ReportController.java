@@ -6,6 +6,9 @@ import com.plataforma.servicos.entity.ReportStatusEnum;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.ReportService;
 import com.plataforma.servicos.util.PaginatedResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +31,7 @@ import java.util.UUID;
 // @RequiredArgsConstructor → injeta ReportService via construtor
 // Padrão recomendado pelo Spring — mais seguro que @Autowired
 @RequiredArgsConstructor
+@Tag(name = "Denúncias", description = "Endpoints para o sistema de denúncias e moderação administrativa")
 public class ReportController {
 
     private final ReportService reportService;
@@ -44,6 +48,8 @@ public class ReportController {
     // Usado no painel de moderação do ADMIN
     // No M7 o adminId virá do token JWT automaticamente
     // GET /api/reports/admin/{adminId}?page=0&size=20
+    @Operation(summary = "Listar todas as denúncias (Admin)", description = "Retorna uma lista paginada de todas as denúncias registradas no sistema. Uso exclusivo para administradores.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Denúncias listadas com sucesso")
     @GetMapping("/admin/{adminId}")
     public ResponseEntity<ApiResponse<PaginatedResponse<ReportResponseDTO>>> findAll(
             @PathVariable UUID adminId,
@@ -68,6 +74,7 @@ public class ReportController {
     //     GET .../status/REJEITADA → só denúncias rejeitadas
     // No M7 o adminId virá do token JWT automaticamente
     // GET /api/reports/admin/{adminId}/status/{status}?page=0&size=20
+    @Operation(summary = "Filtrar denúncias por status (Admin)", description = "Permite ao administrador visualizar denúncias filtradas por sua situação (ex: apenas PENDENTE).")
     @GetMapping("/admin/{adminId}/status/{status}")
     public ResponseEntity<ApiResponse<PaginatedResponse<ReportResponseDTO>>> findByStatus(
             @PathVariable UUID adminId,
@@ -94,6 +101,11 @@ public class ReportController {
     // Regra: ordem informada deve existir (quando informada)
     // Regra: toda denúncia começa com status PENDENTE
     // No M7 o reporterId virá do token JWT automaticamente
+    @Operation(summary = "Registrar denúncia", description = "Permite que um usuário denuncie outro por má conduta ou problemas em ordens de serviço. O status inicial é sempre PENDENTE.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Denúncia registrada com sucesso"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Violação de regra de negócio (ex: denunciar a si mesmo)")
+    })
     @PostMapping("/usuario/{reporterId}")
     public ResponseEntity<ApiResponse<ReportResponseDTO>> create(
             @PathVariable UUID reporterId,
@@ -121,6 +133,11 @@ public class ReportController {
     // Por que PATCH?
     //   Estamos atualizando apenas o status — não o recurso inteiro
     // No M7 o adminId virá do token JWT automaticamente
+    @Operation(summary = "Marcar denúncia como RESOLVIDA", description = "Ação administrativa para indicar que uma denúncia fundamentada foi processada e medidas foram tomadas.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Denúncia resolvida com sucesso"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Apenas administradores podem moderar")
+    })
     @PatchMapping("/{id}/resolver/admin/{adminId}")
     public ResponseEntity<ApiResponse<ReportResponseDTO>> resolve(
             @PathVariable UUID id,
@@ -144,6 +161,8 @@ public class ReportController {
     // Por que PATCH?
     //   Estamos atualizando apenas o status — não o recurso inteiro
     // No M7 o adminId virá do token JWT automaticamente
+    @Operation(summary = "Marcar denúncia como REJEITADA", description = "Ação administrativa para denúncias consideradas improcedentes ou sem provas.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Denúncia rejeitada com sucesso")
     @PatchMapping("/{id}/rejeitar/admin/{adminId}")
     public ResponseEntity<ApiResponse<ReportResponseDTO>> reject(
             @PathVariable UUID id,

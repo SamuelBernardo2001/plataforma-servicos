@@ -4,6 +4,9 @@ import com.plataforma.servicos.dto.favoriteDTOS.FavoriteResponseDTO;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.FavoriteService;
 import com.plataforma.servicos.util.PaginatedResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -25,6 +28,7 @@ import java.util.UUID;
 // @RequiredArgsConstructor → injeta FavoriteService via construtor
 // Padrão recomendado pelo Spring — mais seguro que @Autowired
 @RequiredArgsConstructor
+@Tag(name = "Favoritos", description = "Endpoints para gestão de serviços favoritos dos usuários")
 public class FavoriteController {
 
     private final FavoriteService favoriteService;
@@ -39,6 +43,8 @@ public class FavoriteController {
     // Usado no frontend para exibir lista de favoritos do usuário
     // No M7 o usuarioId virá do token JWT automaticamente
     // GET /api/favorites/usuario/{usuarioId}?page=0&size=20
+    @Operation(summary = "Listar favoritos do usuário", description = "Retorna uma lista paginada de todos os serviços que o usuário favoritou.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Favoritos listados com sucesso")
     @GetMapping("/usuario/{usuarioId}")
     public ResponseEntity<ApiResponse<PaginatedResponse<FavoriteResponseDTO>>> findByUsuario(
             @PathVariable UUID usuarioId,
@@ -60,6 +66,7 @@ public class FavoriteController {
     // Usado no frontend para mostrar coração cheio ou vazio
     // no botão de favoritar da listagem de serviços
     // No M7 o usuarioId virá do token JWT automaticamente
+    @Operation(summary = "Verificar se é favorito", description = "Checa se um serviço específico já consta na lista de favoritos de um usuário. Útil para o estado visual do botão de 'coração' no front.")
     @GetMapping("/usuario/{usuarioId}/service/{serviceId}")
     public ResponseEntity<ApiResponse<Boolean>> isFavorito(
             @PathVariable UUID usuarioId,
@@ -93,6 +100,11 @@ public class FavoriteController {
     //   "Serviço removido dos favoritos"
     //   Frontend usa essa mensagem para feedback ao usuário
     // No M7 o usuarioId virá do token JWT automaticamente
+    @Operation(summary = "Alternar favorito (Toggle)", description = "Adiciona o serviço aos favoritos se não existir, ou remove se já existir. Impede que o prestador favorite o próprio serviço.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Operação realizada com sucesso (Adicionado ou Removido)"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Regra de negócio violada (ex: favoritar próprio serviço)")
+    })
     @PostMapping("/toggle/usuario/{usuarioId}/service/{serviceId}")
     public ResponseEntity<ApiResponse<String>> toggle(
             @PathVariable UUID usuarioId,

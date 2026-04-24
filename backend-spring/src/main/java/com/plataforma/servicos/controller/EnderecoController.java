@@ -5,6 +5,9 @@ import com.plataforma.servicos.dto.EnderecoDTOS.EnderecoRequestDTO;
 import com.plataforma.servicos.dto.EnderecoDTOS.EnderecoResponseDTO;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.EnderecoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,6 +26,7 @@ import java.util.UUID;
 // @RequiredArgsConstructor → injeta EnderecoService via construtor
 // Padrão recomendado pelo Spring — mais seguro que @Autowired
 @RequiredArgsConstructor
+@Tag(name = "Endereços", description = "Endpoints para gestão de endereços de usuários e privacidade de localização")
 public class EnderecoController {
 
     private final EnderecoService enderecoService;
@@ -33,10 +37,11 @@ public class EnderecoController {
 
     // GET /api/enderecos/usuario/{usuarioId}
     // Busca o endereço do próprio usuário
-    // Regra: usuário só pode ver seu próprio endereço
-    // Regra: retorna erro se endereço não cadastrado ainda
-    // Usado no frontend para exibir e editar endereço do perfil
-    // No M7 o usuarioId virá do token JWT automaticamente
+    @Operation(summary = "Buscar endereço do usuário", description = "Retorna o endereço vinculado ao perfil do usuário solicitante.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Endereço encontrado"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Endereço não cadastrado")
+    })
     @GetMapping("/usuario/{usuarioId}")
     public ResponseEntity<ApiResponse<EnderecoResponseDTO>> findByUsuario(
             @PathVariable UUID usuarioId) {
@@ -54,10 +59,9 @@ public class EnderecoController {
     // Regra: prestador só consegue ver o endereço se existir
     //        ordem ACCEPTED entre ele e o cliente
     // Regra: endereço some após ordem COMPLETED — privacidade
-    // Regra: protege privacidade do cliente — prestador não
-    //        consegue ver endereço sem contratação ativa
-    // Usado quando prestador precisa saber onde executar o serviço
-    // No M7 o prestadorId virá do token JWT automaticamente
+    @Operation(summary = "Visualizar endereço do cliente (Uso do Prestador)",
+            description = "Permite que um prestador veja o endereço do cliente apenas se houver uma ordem de serviço ACEITA (ACCEPTED) entre ambos. Garante a privacidade fora do período de prestação.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Endereço do cliente liberado para visualização")
     @GetMapping("/cliente/{clienteId}/prestador/{prestadorId}")
     public ResponseEntity<ApiResponse<EnderecoResponseDTO>> findByUsuarioParaPrestador(
             @PathVariable UUID clienteId,
@@ -75,12 +79,11 @@ public class EnderecoController {
     // CADASTRO
 
     // POST /api/enderecos/usuario/{usuarioId}
-    // Cadastra endereço após criação da conta
-    // Regra: usuário deve estar ativo
-    // Regra: usuário só pode ter um endereço — unicidade
-    // Regra: endereço não é obrigatório no cadastro —
-    //        pode ser cadastrado depois
-    // No M7 o usuarioId virá do token JWT automaticamente
+    @Operation(summary = "Cadastrar endereço", description = "Realiza o cadastro único de endereço para um usuário ativo.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Endereço cadastrado com sucesso"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Usuário já possui endereço ou dados inválidos")
+    })
     @PostMapping("/usuario/{usuarioId}")
     public ResponseEntity<ApiResponse<EnderecoResponseDTO>> create(
             @PathVariable UUID usuarioId,
@@ -98,11 +101,7 @@ public class EnderecoController {
     // ATUALIZAÇÕES
 
     // PUT /api/enderecos/usuario/{usuarioId}
-    // Atualiza endereço completo do usuário
-    // Regra: usuário só pode atualizar seu próprio endereço
-    // Regra: todos os campos são atualizados de uma vez
-    // Usado quando usuário quer trocar de endereço completamente
-    // No M7 o usuarioId virá do token JWT automaticamente
+    @Operation(summary = "Atualizar endereço completo (PUT)", description = "Substitui todos os dados do endereço atual pelos novos dados informados.")
     @PutMapping("/usuario/{usuarioId}")
     public ResponseEntity<ApiResponse<EnderecoResponseDTO>> update(
             @PathVariable UUID usuarioId,
@@ -117,15 +116,7 @@ public class EnderecoController {
     }
 
     // PATCH /api/enderecos/usuario/{usuarioId}
-    // Atualiza campos individuais do endereço
-    // Regra: usuário pode atualizar apenas um campo por vez
-    // Regra: campos não informados (null) não são alterados
-    // Por que PATCH e não PUT?
-    //   PUT → atualiza o recurso inteiro (todos os campos)
-    //   PATCH → atualiza apenas os campos informados
-    // Usado quando usuário quer mudar apenas o número,
-    //   ou apenas o complemento, sem redigitar tudo
-   // No M7 o usuarioId virá do token JWT automaticamente
+    @Operation(summary = "Atualizar campos parciais (PATCH)", description = "Permite atualizar apenas campos específicos do endereço (ex: apenas o complemento) sem necessidade de enviar o objeto todo.")
     @PatchMapping("/usuario/{usuarioId}")
     public ResponseEntity<ApiResponse<EnderecoResponseDTO>> patch(
             @PathVariable UUID usuarioId,
@@ -142,13 +133,8 @@ public class EnderecoController {
     // REMOÇÃO
 
     // DELETE /api/enderecos/usuario/{usuarioId}
-    // Deleta endereço do usuário
-    // Regra: usuário só pode deletar seu próprio endereço
-    // Regra: após deletar pode cadastrar um novo
-    // Atenção: se prestador tiver ordem ACCEPTED ativa
-    //          cliente não deveria deletar o endereço
-    //          essa validação será implementada no M7
-    // No M7 o usuarioId virá do token JWT automaticamente
+    @Operation(summary = "Remover endereço", description = "Exclui o endereço do perfil do usuário. No M7, haverá validação para impedir a exclusão caso existam ordens ativas em andamento.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Endereço removido com sucesso")
     @DeleteMapping("/usuario/{usuarioId}")
     public ResponseEntity<ApiResponse<Void>> delete(
             @PathVariable UUID usuarioId) {

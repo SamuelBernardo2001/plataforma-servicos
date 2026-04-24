@@ -5,6 +5,9 @@ import com.plataforma.servicos.dto.serviceImagesDTO.ServiceImageResponseDTO;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.ServiceImageService;
 import com.plataforma.servicos.util.PaginatedResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +30,7 @@ import java.util.UUID;
 // @RequiredArgsConstructor → injeta ServiceImageService via construtor
 // Padrão recomendado pelo Spring — mais seguro que @Autowired
 @RequiredArgsConstructor
+@Tag(name = "Imagens do Serviço", description = "Endpoints para gerenciamento da galeria de fotos dos serviços")
 public class ServiceImageController {
 
     private final ServiceImageService serviceImageService;
@@ -43,6 +47,8 @@ public class ServiceImageController {
     // Usado no frontend para exibir galeria de fotos do serviço
     // Cliente visualiza antes de contratar
     // GET /api/v1/service-images/service/{serviceId}?page=0&size=5
+    @Operation(summary = "Listar imagens de um serviço", description = "Retorna uma lista paginada de imagens associadas a um serviço específico. Acesso público.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Imagens listadas com sucesso")
     @GetMapping("/service/{serviceId}")
     public ResponseEntity<ApiResponse<PaginatedResponse<ServiceImageResponseDTO>>> findByService(
             @PathVariable UUID serviceId,
@@ -68,6 +74,12 @@ public class ServiceImageController {
     // Regra: limite máximo de 10 imagens por serviço
     // No M7 o prestadorId virá do token JWT automaticamente
     // No M7 será integrado com Cloudinary para upload real
+    @Operation(summary = "Adicionar imagem ao serviço", description = "Permite ao prestador adicionar fotos à galeria do seu serviço. Limite máximo de 10 imagens.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Imagem adicionada com sucesso"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Limite de imagens excedido ou serviço inativo"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Usuário não tem permissão para alterar este serviço")
+    })
     @PostMapping("/service/{serviceId}/prestador/{prestadorId}")
     public ResponseEntity<ApiResponse<ServiceImageResponseDTO>> addImage(
             @PathVariable UUID serviceId,
@@ -90,6 +102,12 @@ public class ServiceImageController {
     // Regra: imagem deve existir
     // No M7 o prestadorId virá do token JWT automaticamente
     // No M7 será integrado com Cloudinary para deletar do storage
+    @Operation(summary = "Remover imagem", description = "Remove uma imagem específica da galeria. Apenas o prestador dono do serviço pode realizar esta operação.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Imagem removida com sucesso"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Imagem não encontrada"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Usuário sem permissão")
+    })
     @DeleteMapping("/{id}/prestador/{prestadorId}")
     public ResponseEntity<ApiResponse<Void>> removeImage(
             @PathVariable UUID id,

@@ -4,6 +4,10 @@ import com.plataforma.servicos.dto.messageDTOS.MessageRequestDTO;
 import com.plataforma.servicos.dto.messageDTOS.MessageResponseDTO;
 import com.plataforma.servicos.exception.ApiResponse;
 import com.plataforma.servicos.service.MessageService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,6 +27,7 @@ import java.util.UUID;
 // @RequiredArgsConstructor → injeta MessageService via construtor
 // Padrão recomendado pelo Spring — mais seguro que @Autowired
 @RequiredArgsConstructor
+@Tag(name = "Mensagens", description = "Endpoints para o sistema de chat entre clientes e prestadores dentro de uma ordem")
 public class MessageController {
 
     private final MessageService messageService;
@@ -47,11 +52,13 @@ public class MessageController {
     //   pagina=0 → mensagens mais recentes
     //   pagina=1 → mensagens anteriores (scroll up)
     // No M7 o usuarioId virá do token JWT automaticamente
+    @Operation(summary = "Listar mensagens do chat", description = "Retorna o histórico de mensagens de uma ordem de serviço de forma paginada e cronológica.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Mensagens listadas com sucesso")
     @GetMapping("/ordem/{ordemId}/usuario/{usuarioId}")
     public ResponseEntity<ApiResponse<Page<MessageResponseDTO>>> findByOrdem(
             @PathVariable UUID ordemId,
             @PathVariable UUID usuarioId,
-            @RequestParam(defaultValue = "0") int pagina) {
+            @Parameter(description = "Número da página (começa em 0)") @RequestParam(defaultValue = "0") int pagina) {
         Page<MessageResponseDTO> messages = messageService.findByOrdem(
                 ordemId, usuarioId, pagina);
         return ResponseEntity.ok(
@@ -75,6 +82,12 @@ public class MessageController {
     //        se remetente é prestador → receptor é cliente
     //        não precisa informar o receptor no body
     // No M7 o remetenteId virá do token JWT automaticamente
+    @Operation(summary = "Enviar mensagem", description = "Envia uma nova mensagem no chat da ordem. O receptor é identificado automaticamente pelo sistema.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Mensagem enviada com sucesso"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Erro de validação ou ordem já finalizada/cancelada"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Usuário não pertence a esta ordem de serviço")
+    })
     @PostMapping("/remetente/{remetenteId}")
     public ResponseEntity<ApiResponse<MessageResponseDTO>> send(
             @PathVariable UUID remetenteId,
@@ -107,11 +120,13 @@ public class MessageController {
     //   Editar mensagem é simples — apenas o texto muda
     //   @RequestParam evita criar um DTO só para isso
     // No M7 o remetenteId virá do token JWT automaticamente
+    @Operation(summary = "Editar mensagem", description = "Permite que o remetente altere o conteúdo de uma mensagem enviada. A mensagem será marcada como editada.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Mensagem editada com sucesso")
     @PatchMapping("/{id}/remetente/{remetenteId}")
     public ResponseEntity<ApiResponse<MessageResponseDTO>> edit(
             @PathVariable UUID id,
             @PathVariable UUID remetenteId,
-            @RequestParam String novoConteudo) {
+            @Parameter(description = "Novo texto da mensagem") @RequestParam String novoConteudo) {
         MessageResponseDTO message = messageService.edit(id, remetenteId, novoConteudo);
         return ResponseEntity.ok(
                 ApiResponse.success(
@@ -134,6 +149,8 @@ public class MessageController {
     //   Estamos atualizando o campo lida das mensagens
     //   não criando nem deletando recursos
     // No M7 o usuarioId virá do token JWT automaticamente
+    @Operation(summary = "Marcar mensagens como lidas", description = "Atualiza o status de leitura de todas as mensagens recebidas pelo usuário na ordem especificada.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Mensagens marcadas como lidas")
     @PatchMapping("/ordem/{ordemId}/lidas/usuario/{usuarioId}")
     public ResponseEntity<ApiResponse<Void>> marcarComoLida(
             @PathVariable UUID ordemId,

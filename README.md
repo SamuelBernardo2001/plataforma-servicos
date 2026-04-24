@@ -19,6 +19,7 @@ Marketplace de serviços locais que conecta prestadores (construção, barbearia
 - GitHub Actions (CI/CD)
 
 ## Estrutura do Projeto
+
 plataforma-servicos/
 ├── backend-spring/     # API REST Java/Spring Boot
 ├── frontend-angular/   # App Angular
