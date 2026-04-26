@@ -12,7 +12,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EnderecoModel {
+public class EnderecoModel extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -45,9 +45,4 @@ public class EnderecoModel {
     @Column(nullable = false, length = 2)
     private String estado;
 
-    @Column(name = "criado_em", updatable = false)
-    private LocalDateTime criadoEm;
-
-    @Column(name = "atualizado_em")
-    private LocalDateTime atualizadoEm;
 }

@@ -14,7 +14,7 @@ import java.util.UUID;
 @ToString
 @Entity
 @Table(name = "favorites")
-public class FavoriteModel {
+public class FavoriteModel extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -30,5 +30,4 @@ public class FavoriteModel {
     @JoinColumn(name = "service_id", nullable = false)
     private ServiceModel service;
 
-    private LocalDateTime criadoEm;
 }

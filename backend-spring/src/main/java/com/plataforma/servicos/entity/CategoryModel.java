@@ -15,7 +15,7 @@ import java.util.UUID;
 @ToString
 @Entity
 @Table(name = "categories")
-public class CategoryModel {
+public class CategoryModel extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -29,10 +29,6 @@ public class CategoryModel {
 
     @Builder.Default
     private Boolean ativo = true;
-
-    private LocalDateTime criadoEm;
-
-    private LocalDateTime atualizadoEm;
 
     // Uma categoria pode ter muitos serviços
     @OneToMany(mappedBy = "categoria", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

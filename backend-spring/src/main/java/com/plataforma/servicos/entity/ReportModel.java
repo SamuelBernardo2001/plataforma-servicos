@@ -14,7 +14,7 @@ import java.util.UUID;
 @ToString
 @Entity
 @Table(name = "reports")
-public class ReportModel {
+public class ReportModel extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -50,5 +50,4 @@ public class ReportModel {
     @Column(nullable = false)
     private ReportStatusEnum status = ReportStatusEnum.PENDENTE;
 
-    private LocalDateTime criadoEm;
 }

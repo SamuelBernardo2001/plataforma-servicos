@@ -16,7 +16,7 @@ import java.util.UUID;
 @ToString
 @Entity
 @Table(name = "service_orders")
-public class ServiceOrderModel {
+public class ServiceOrderModel extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -48,10 +48,8 @@ public class ServiceOrderModel {
     @Column(nullable = false)
     private OrderStatusEnum status = OrderStatusEnum.REQUESTED;
 
-    private LocalDateTime criadoEm;
-
-    private LocalDateTime atualizadoEm;
-
+    // criadoEm e atualizadoEm → REMOVIDOS — vem do BaseEntity
+    // concluidoEm → MANTIDO pois é campo de negócio, não de auditoria
     private LocalDateTime concluidoEm;
 
     // Uma ordem pode ter muitas mensagens

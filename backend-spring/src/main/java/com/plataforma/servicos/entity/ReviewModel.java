@@ -14,7 +14,7 @@ import java.util.UUID;
 @ToString
 @Entity
 @Table(name = "reviews")
-public class ReviewModel {
+public class ReviewModel extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -46,9 +46,7 @@ public class ReviewModel {
     @Builder.Default
     private Boolean editado = false;
 
-    // Data da última edição da avaliação
-    // Null se nunca foi editada
-    private LocalDateTime editadoEm;
-
+    // criadoEm → REMOVIDO — vem do BaseEntity
+    // editadoEm → MANTIDO pois é campo de negócio
     private LocalDateTime criadoEm;
 }

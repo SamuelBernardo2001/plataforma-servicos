@@ -14,7 +14,7 @@ import java.util.UUID;
 @ToString
 @Entity
 @Table(name = "messages")
-public class MessageModel {
+public class MessageModel extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -51,4 +51,8 @@ public class MessageModel {
     private LocalDateTime editadoEm;
 
     private LocalDateTime enviadoEm;
+
+    // enviadoEm → MANTIDO pois é campo de negócio (data real do envio)
+    // criadoEm do BaseEntity registra quando o registro foi criado no banco
+    // editadoEm → MANTIDO pois é campo de negócio
 }

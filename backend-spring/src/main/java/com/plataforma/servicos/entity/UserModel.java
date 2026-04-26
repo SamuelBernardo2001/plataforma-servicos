@@ -15,7 +15,7 @@ import java.util.UUID;
 @ToString
 @Entity
 @Table(name = "users")
-public class UserModel {
+public class UserModel extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -39,10 +39,6 @@ public class UserModel {
 
     @Builder.Default
     private Boolean ativo = true;
-
-    private LocalDateTime criadoEm;
-
-    private LocalDateTime atualizadoEm;
 
     // Um usuário pode ter muitos serviços (prestador)
     @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

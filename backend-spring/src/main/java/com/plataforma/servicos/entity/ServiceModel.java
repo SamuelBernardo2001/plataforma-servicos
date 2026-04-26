@@ -16,7 +16,7 @@ import java.util.UUID;
 @ToString
 @Entity
 @Table(name = "services")
-public class ServiceModel {
+public class ServiceModel extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -47,10 +47,6 @@ public class ServiceModel {
     @Builder.Default
     @Column(nullable = false)
     private Boolean ativo = true;
-
-    private LocalDateTime criadoEm;
-
-    private LocalDateTime atualizadoEm;
 
     // Um serviço pode ter muitas imagens
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

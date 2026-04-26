@@ -13,7 +13,7 @@ import java.util.UUID;
 @ToString
 @Entity
 @Table(name = "service_images")
-public class ServiceImageModel {
+public class ServiceImageModel extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
