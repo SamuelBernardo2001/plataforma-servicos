@@ -48,5 +48,5 @@ public class ReviewModel extends BaseEntity {
 
     // criadoEm → REMOVIDO — vem do BaseEntity
     // editadoEm → MANTIDO pois é campo de negócio
-    private LocalDateTime criadoEm;
+    private LocalDateTime editadoEm;
 }
