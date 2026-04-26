@@ -17,10 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -133,8 +130,6 @@ public class ServicoService {
         ServiceModel service = serviceMapper.toModel(dto);
         service.setPrestador(prestador);
         service.setCategoria(categoria);
-        service.setCriadoEm(LocalDateTime.now());
-        service.setAtualizadoEm(LocalDateTime.now());
 
         return serviceMapper.toResponseDTO(serviceRepository.save(service));
     }
@@ -167,7 +162,6 @@ public class ServicoService {
         service.setPreco(dto.preco());
         service.setTelefoneContato(dto.telefoneContato());
         service.setCategoria(categoria);
-        service.setAtualizadoEm(LocalDateTime.now());
 
         return serviceMapper.toResponseDTO(serviceRepository.save(service));
     }
@@ -189,7 +183,6 @@ public class ServicoService {
         }
 
         service.setAtivo(false);
-        service.setAtualizadoEm(LocalDateTime.now());
 
         serviceRepository.save(service);
     }

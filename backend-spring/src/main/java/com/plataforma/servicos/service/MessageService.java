@@ -17,7 +17,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -100,7 +99,6 @@ public class MessageService {
         message.setReceptor(receptor);
         message.setLer(false); // mensagem sempre começa como não lida
         message.setEditado(false); // mensagem não foi editada
-        message.setEnviadoEm(LocalDateTime.now());
 
         return messageMapper.toResponseDTO(messageRepository.save(message));
     }
@@ -128,7 +126,6 @@ public class MessageService {
 
         message.setConteudo(novoConteudo);
         message.setEditado(true); // Marca como editada — transparência para o receptor
-        message.setEditadoEm(LocalDateTime.now()); // Registra quando foi editada
 
         return messageMapper.toResponseDTO(messageRepository.save(message));
     }

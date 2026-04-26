@@ -5,19 +5,17 @@ import com.plataforma.servicos.entity.UserModel;
 import com.plataforma.servicos.mapper.UserMapper;
 import com.plataforma.servicos.repository.UserRepository;
 import com.plataforma.servicos.util.PaginatedResponse;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional; // Ajustado para Spring Transaction
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true) // Mantém a sessão ativa para todos os métodos de busca
 public class UserService {
 
     private final UserRepository userRepository; // Injeção do UserRepository para acessar o banco de dados
@@ -56,8 +54,6 @@ public class UserService {
         }
 
         UserModel user = userMapper.toModel(dto);
-        user.setCriadoEm(LocalDateTime.now());
-        user.setAtualizadoEm(LocalDateTime.now());
 
         return userMapper.toResponseDTO(userRepository.save(user));
     }
@@ -71,7 +67,6 @@ public class UserService {
 
         user.setNome(dto.nome());
         user.setTelefone(dto.telefone());
-        user.setAtualizadoEm(LocalDateTime.now());
 
         return userMapper.toResponseDTO(userRepository.save(user));
     }
@@ -98,7 +93,6 @@ public class UserService {
         }
 
         user.setSenha(dto.novaSenha()); // será criptografada no M7 (Segurança)
-        user.setAtualizadoEm(LocalDateTime.now());
 
         userRepository.save(user);
     }
@@ -116,16 +110,15 @@ public class UserService {
         }
 
         user.setAtivo(false);
-        user.setAtualizadoEm(LocalDateTime.now());
 
         userRepository.save(user);
     }
 
     // Autentica usuário com email e senha
-// Regra: email deve existir no sistema
-// Regra: senha deve ser igual à cadastrada
-// Regra: usuário deve estar ativo
-// No M7 a senha será comparada com BCrypt
+    // Regra: email deve existir no sistema
+    // Regra: senha deve ser igual à cadastrada
+    // Regra: usuário deve estar ativo
+    // No M7 a senha será comparada com BCrypt
     public UserResponseDTO login(UserLoginDTO dto) {
         UserModel user = userRepository.findByEmail(dto.email())
                 .orElseThrow(() -> new RuntimeException("Email ou senha inválidos"));
@@ -143,5 +136,4 @@ public class UserService {
 
         return userMapper.toResponseDTO(user);
     }
-    }
-
+}

@@ -15,10 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -69,8 +66,6 @@ public class CategoryService {
         }
 
         CategoryModel category = categoryMapper.toModel(dto);
-        category.setCriadoEm(LocalDateTime.now());
-        category.setAtualizadoEm(LocalDateTime.now());
 
         return categoryMapper.toResponseDTO(categoryRepository.save(category));
     }
@@ -98,7 +93,6 @@ public class CategoryService {
 
         category.setNome(dto.nome());
         category.setDescricao(dto.descricao());
-        category.setAtualizadoEm(LocalDateTime.now());
 
         return categoryMapper.toResponseDTO(categoryRepository.save(category));
     }
@@ -128,9 +122,7 @@ public class CategoryService {
         // O prestador receberá notificação para atualizar a categoria
         // do seu serviço (será implementado no M8 — Observabilidade)
         category.setAtivo(false);
-        category.setAtualizadoEm(LocalDateTime.now());
 
         categoryRepository.save(category);
     }
 }
-

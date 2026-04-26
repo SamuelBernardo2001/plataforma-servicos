@@ -15,10 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -88,7 +85,6 @@ public class ReviewService {
         review.setUsuario(cliente);
         review.setServiceOrder(ordem);
         review.setEditado(false);
-        review.setCriadoEm(LocalDateTime.now());
 
         return reviewMapper.toResponseDTO(reviewRepository.save(review));
     }
@@ -110,7 +106,6 @@ public class ReviewService {
         review.setClassificacao(dto.rating());
         review.setComentario(dto.comentario());
         review.setEditado(true); // Marca como editada para transparência
-        review.setEditadoEm(LocalDateTime.now()); // Registra quando foi editada
 
         return reviewMapper.toResponseDTO(reviewRepository.save(review));
     }

@@ -15,9 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -120,8 +118,6 @@ public class OrderService {
         order.setPrestador(service.getPrestador());
         order.setService(service);
         order.setStatus(OrderStatusEnum.REQUESTED);
-        order.setCriadoEm(LocalDateTime.now());
-        order.setAtualizadoEm(LocalDateTime.now());
 
         return serviceOrderMapper.toResponseDTO(serviceOrderRepository.save(order));
     }
@@ -157,6 +153,7 @@ public class OrderService {
             if (!OrderStatusEnum.COMPLETED.equals(novoStatus)) {
                 throw new RuntimeException("Prestador só pode COMPLETAR ordem aceita");
             }
+            // MANTIDO: concluídoEm é uma data de regra de negócio, não de auditoria simples
             order.setConcluidoEm(LocalDateTime.now());
         }
 
@@ -172,7 +169,6 @@ public class OrderService {
         }
 
         order.setStatus(novoStatus);
-        order.setAtualizadoEm(LocalDateTime.now());
 
         return serviceOrderMapper.toResponseDTO(serviceOrderRepository.save(order));
     }

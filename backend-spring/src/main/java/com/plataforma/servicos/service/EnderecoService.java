@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -85,8 +84,6 @@ public class EnderecoService {
 
         EnderecoModel endereco = enderecoMapper.toModel(dto);
         endereco.setUser(usuario);
-        endereco.setCriadoEm(LocalDateTime.now());
-        endereco.setAtualizadoEm(LocalDateTime.now());
 
         return enderecoMapper.toResponseDTO(enderecoRepository.save(endereco));
     }
@@ -110,7 +107,6 @@ public class EnderecoService {
         endereco.setBairro(dto.bairro());
         endereco.setCidade(dto.cidade());
         endereco.setEstado(dto.estado());
-        endereco.setAtualizadoEm(LocalDateTime.now());
 
         return enderecoMapper.toResponseDTO(enderecoRepository.save(endereco));
     }
@@ -135,7 +131,6 @@ public class EnderecoService {
         if (dto.bairro() != null) endereco.setBairro(dto.bairro());
         if (dto.cidade() != null) endereco.setCidade(dto.cidade());
         if (dto.estado() != null) endereco.setEstado(dto.estado());
-        endereco.setAtualizadoEm(LocalDateTime.now());
 
         return enderecoMapper.toResponseDTO(enderecoRepository.save(endereco));
     }

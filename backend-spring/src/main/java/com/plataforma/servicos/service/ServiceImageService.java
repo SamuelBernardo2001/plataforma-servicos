@@ -11,18 +11,17 @@ import com.plataforma.servicos.repository.ServiceImageRepository;
 import com.plataforma.servicos.repository.ServiceRepository;
 import com.plataforma.servicos.repository.UserRepository;
 import com.plataforma.servicos.util.PaginatedResponse;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // Importe do Spring para melhor integração
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true) // Mantém a sessão ativa para consultas e mappers
 public class ServiceImageService {
 
     private final ServiceImageRepository serviceImageRepository;
@@ -61,7 +60,7 @@ public class ServiceImageService {
     // No M7 o prestadorId virá do token JWT automaticamente
     // No M7 será integrado com Cloudinary para upload real
     // Por enquanto recebe a URL diretamente
-    @Transactional
+    @Transactional // Permite a persistência e ativa o Spring Auditing
     public ServiceImageResponseDTO addImage(
             UUID serviceId, UUID prestadorId, ServiceImageRequestDTO dto) {
 

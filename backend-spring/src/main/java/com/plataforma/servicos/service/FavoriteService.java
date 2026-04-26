@@ -15,11 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -88,14 +85,13 @@ public class FavoriteService {
         }
 
         // Se não favoritou → favorita
+        // Removido o set manual de criadoEm para usar o Spring Auditing
         FavoriteModel favorite = FavoriteModel.builder()
                 .usuario(usuario)
                 .service(service)
-                .criadoEm(LocalDateTime.now())
                 .build();
 
         favoriteRepository.save(favorite);
         return "Serviço adicionado aos favoritos";
     }
 }
-
