@@ -68,6 +68,13 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+        <!-- Logstash Encoder — gera logs em JSON estruturado para producao -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>7.4</version>
+        </dependency>
+
         <!-- DEVTOOLS -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
