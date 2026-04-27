@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <!-- PROPRIEDADES GLOBAIS                      -->
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+
+    <!-- Nome da aplicação exibido nos logs -->
+    <property name="APP_NAME" value="plataforma-servicos"/>
+
+    <!-- Pasta onde os logs são salvos em arquivo -->
+    <property name="LOG_PATH" value="logs"/>
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <!-- PERFIL: DESENVOLVIMENTO                   -->
+    <!-- Logs legíveis no console com cores        -->
+    <!-- ativa com: spring.profiles.active=default -->
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <springProfile name="default,dev">
+
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <!-- Formato legível para desenvolvimento -->
+                <!-- Inclui: data, nivel, requestId (MDC), classe, mensagem -->
+                <pattern>
+                    %cyan(%d{yyyy-MM-dd HH:mm:ss}) %highlight(%-5level) [%magenta(%X{requestId:-NO_REQUEST})] [%blue(%thread)] %yellow(%logger{36}) - %msg%n
+                </pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
+        <!-- Reduz verbosidade do Hibernate em desenvolvimento -->
+        <logger name="org.hibernate.SQL" level="DEBUG"/>
+        <logger name="org.hibernate.type.descriptor.sql" level="TRACE"/>
+        <logger name="com.plataforma.servicos" level="DEBUG"/>
+
+    </springProfile>
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <!-- PERFIL: PRODUÇÃO                          -->
+    <!-- Logs em JSON estruturado para Kibana,     -->
+    <!-- Datadog, CloudWatch, etc.                 -->
+    <!-- ativa com: spring.profiles.active=prod    -->
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <springProfile name="prod">
+
+        <!-- Console em JSON para coleta pelo Docker/Kubernetes -->
+        <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <!-- Campos fixos adicionados em todos os logs -->
+                <customFields>{"app":"plataforma-servicos","version":"1.0","env":"prod"}</customFields>
+
+                <!-- Inclui campos do MDC automaticamente -->
+                <!-- requestId, userId, method, path sao adicionados pelo RequestLoggingFilter -->
+                <includeMdcKeyName>requestId</includeMdcKeyName>
+                <includeMdcKeyName>userId</includeMdcKeyName>
+                <includeMdcKeyName>method</includeMdcKeyName>
+                <includeMdcKeyName>path</includeMdcKeyName>
+
+                <!-- Timestamp em ISO 8601 -->
+                <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSSZ</timestampPattern>
+            </encoder>
+        </appender>
+
+        <!-- Arquivo rotativo — mantém histórico de 30 dias -->
+        <appender name="FILE_JSON" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_PATH}/plataforma-servicos.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <!-- Rotaciona diariamente e comprime -->
+                <fileNamePattern>${LOG_PATH}/plataforma-servicos.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+                <!-- Mantém logs dos últimos 30 dias -->
+                <maxHistory>30</maxHistory>
+                <!-- Máximo de 1GB de logs total -->
+                <totalSizeCap>1GB</totalSizeCap>
+            </rollingPolicy>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <customFields>{"app":"plataforma-servicos","version":"1.0","env":"prod"}</customFields>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_JSON"/>
+            <appender-ref ref="FILE_JSON"/>
+        </root>
+
+        <!-- Em produção não logamos SQL -->
+        <logger name="org.hibernate.SQL" level="WARN"/>
+        <logger name="com.plataforma.servicos" level="INFO"/>
+
+    </springProfile>
+
+</configuration>
