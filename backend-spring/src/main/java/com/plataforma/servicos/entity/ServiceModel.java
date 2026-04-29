@@ -55,6 +55,12 @@ public class ServiceModel extends BaseEntity implements SoftDeletable {
     @Column(nullable = false)
     private Boolean ativo = true;
 
+    // @Version → previne que dois prestadores (ou o mesmo em abas diferentes)
+    // sobrescrevam alteracoes no servico simultaneamente
+    @Version
+    @Column(nullable = false)
+    private Long version = 0L;
+
     // Um serviço pode ter muitas imagens
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ServiceImageModel> imagens;

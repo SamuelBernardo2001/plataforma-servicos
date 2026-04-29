@@ -48,6 +48,15 @@ public class UserModel extends BaseEntity implements SoftDeletable {
     @Column(nullable = false)
     private Boolean ativo = true;
 
+    // @Version → campo de controle de concorrencia
+    // Incrementado automaticamente pelo Hibernate a cada UPDATE
+    // Se dois usuarios tentarem atualizar o mesmo registro ao mesmo tempo
+    // o segundo recebe ObjectOptimisticLockingFailureException
+    // evitando sobrescrita silenciosa de dados
+    @Version
+    @Column(nullable = false)
+    private Long version = 0L;
+
     // Um usuário pode ter muitos serviços (prestador)
     @OneToMany(mappedBy = "prestador", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ServiceModel> servicos;

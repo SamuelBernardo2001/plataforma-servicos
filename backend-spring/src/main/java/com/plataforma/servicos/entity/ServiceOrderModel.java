@@ -48,6 +48,14 @@ public class ServiceOrderModel extends BaseEntity{
     @Column(nullable = false)
     private OrderStatusEnum status = OrderStatusEnum.REQUESTED;
 
+    // @Version → entidade mais critica do sistema
+    // Previne que cliente e prestador alterem o status
+    // da mesma ordem ao mesmo tempo
+    // Ex: prestador aceita enquanto cliente cancela simultaneamente
+    @Version
+    @Column(nullable = false)
+    private Long version = 0L;
+
     // criadoEm e atualizadoEm → REMOVIDOS — vem do BaseEntity
     // concluidoEm → MANTIDO pois é campo de negócio, não de auditoria
     private LocalDateTime concluidoEm;
