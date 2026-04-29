@@ -1,7 +1,9 @@
 package com.plataforma.servicos.entity;
 
+import com.plataforma.servicos.util.SoftDeletable;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Where;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,7 +18,11 @@ import java.util.UUID;
 @ToString
 @Entity
 @Table(name = "services")
-public class ServiceModel extends BaseEntity{
+// @Where → garante que servicos desativados nunca aparecem
+// nas listagens publicas nem nos relacionamentos @OneToMany
+// ex: user.getServicos() nunca retorna servicos inativos
+@Where(clause = "ativo = true")
+public class ServiceModel extends BaseEntity implements SoftDeletable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -44,6 +50,7 @@ public class ServiceModel extends BaseEntity{
     @JoinColumn(name = "categoria_id")
     private CategoryModel categoria;
 
+    // Campo de soft delete — false = servico desativado
     @Builder.Default
     @Column(nullable = false)
     private Boolean ativo = true;

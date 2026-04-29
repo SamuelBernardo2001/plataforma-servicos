@@ -1,9 +1,10 @@
 package com.plataforma.servicos.entity;
 
+import com.plataforma.servicos.util.SoftDeletable;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Where;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,7 +16,11 @@ import java.util.UUID;
 @ToString
 @Entity
 @Table(name = "users")
-public class UserModel extends BaseEntity{
+// @Where → filtro automatico aplicado em TODA query do Hibernate
+// para esta entidade — nunca retorna usuarios desativados
+// sem precisar de filtro manual nos Services
+@Where(clause = "ativo = true")
+public class UserModel extends BaseEntity implements SoftDeletable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -37,7 +42,10 @@ public class UserModel extends BaseEntity{
 
     private String telefone;
 
+    // Campo de soft delete — false = usuario desativado
+    // @Where garante que ativo = false nunca aparece nas queries
     @Builder.Default
+    @Column(nullable = false)
     private Boolean ativo = true;
 
     // Um usuário pode ter muitos serviços (prestador)
