@@ -3,6 +3,7 @@ package com.plataforma.servicos.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -165,6 +166,31 @@ public class GlobalExceptionHandler {
                         message,
                         "INVALID_PARAMETER",
                         HttpStatus.BAD_REQUEST.value()
+                ));
+    }
+
+    // Trata conflitos de atualizacao simultanea (Optimistic Locking)
+    // Acontece quando dois usuarios tentam atualizar o mesmo registro
+    // ao mesmo tempo — o segundo recebe este erro
+    // Ex: prestador aceita ordem enquanto cliente tenta cancelar
+    // Status 409 → Conflict (conflito com estado atual do recurso)
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ApiResponse<Void>> handleOptimisticLockingException(
+            ObjectOptimisticLockingFailureException ex,
+            HttpServletRequest request) {
+
+        log.warn("Conflito de atualizacao simultanea em {} {}: {}",
+                request.getMethod(),
+                request.getRequestURI(),
+                ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(
+                        "Este registro foi atualizado por outro usuario. " +
+                                "Atualize a pagina e tente novamente.",
+                        "OPTIMISTIC_LOCKING_ERROR",
+                        HttpStatus.CONFLICT.value()
                 ));
     }
 }
