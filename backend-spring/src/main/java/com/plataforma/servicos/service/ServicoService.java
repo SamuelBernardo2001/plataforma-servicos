@@ -92,19 +92,20 @@ public class ServicoService {
         return PaginatedResponse.of(page);
     }
 
-    // Lista TODOS os serviços de um prestador (ativos e inativos)
     // Usado no painel do prestador para gerenciar seus próprios serviços
     // Regra: prestador deve existir
     // Regra: prestador vê todos os seus serviços inclusive os desativados
     // Usa findByPrestadorId() — filtra direto no banco:
     // Lista todos os serviços do prestador (painel) com paginação
+    // Painel do prestador — precisa ver seus servicos desativados
+    // Usa query nativa para ignorar o @Where da entidade
     public PaginatedResponse<ServiceResponseDTO> findAllByPrestador(
             UUID prestadorId, Pageable pageable) {
         userRepository.findById(prestadorId)
-                .orElseThrow(() -> new RuntimeException("Prestador não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Prestador nao encontrado"));
 
         Page<ServiceResponseDTO> page = serviceRepository
-                .findByPrestadorId(prestadorId, pageable)
+                .findAllByPrestadorIdIncludingInactive(prestadorId, pageable)
                 .map(serviceMapper::toResponseDTO);
         return PaginatedResponse.of(page);
     }

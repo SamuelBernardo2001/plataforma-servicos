@@ -4,6 +4,9 @@ import com.plataforma.servicos.entity.ServiceModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import java.util.UUID;
 
 public interface ServiceRepository extends JpaRepository<ServiceModel, UUID> {
@@ -26,4 +29,12 @@ public interface ServiceRepository extends JpaRepository<ServiceModel, UUID> {
     // Listagem pública do prestador — só ativos com paginação
     // busca serviços por prestador e status, independente da categoria
     Page<ServiceModel> findByPrestadorIdAndAtivo(UUID prestadorId, Boolean ativo, Pageable pageable);
+
+    // Busca TODOS os servicos do prestador incluindo inativos
+    // Usado no painel do prestador — ignora o @Where da entidade
+    // nativeQuery = true → bypassa o @Where do Hibernate
+    @Query(value = "SELECT * FROM services WHERE prestador_id = :prestadorId",
+            nativeQuery = true)
+    Page<ServiceModel> findAllByPrestadorIdIncludingInactive(
+            @Param("prestadorId") UUID prestadorId, Pageable pageable);
 }
