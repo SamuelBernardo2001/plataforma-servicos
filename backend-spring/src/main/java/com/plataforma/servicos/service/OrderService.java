@@ -9,6 +9,8 @@ import com.plataforma.servicos.repository.ServiceRepository;
 import com.plataforma.servicos.repository.UserRepository;
 import com.plataforma.servicos.util.PaginatedResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ public class OrderService {
     private final ServiceRepository serviceRepository;
     private final UserRepository userRepository;
     private final ServiceOrderMapper serviceOrderMapper;
+    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
 
     // Busca ordem por ID
     // Regra: apenas cliente ou prestador da ordem podem visualizar
@@ -77,32 +80,53 @@ public class OrderService {
         return PaginatedResponse.of(page);
     }
 
-    // Cria nova ordem de serviço (contratação)
-    // Regra: apenas CLIENTE pode criar ordem
-    // Regra: serviço deve estar ativo
-    // Regra: cliente não pode contratar seu próprio serviço
-    // Regra: cliente não pode ter ordem REQUESTED ou ACCEPTED para o mesmo serviço
+    /**
+     * Realiza a abertura de uma nova Ordem de Serviço (contratação).
+     * * O processo segue este fluxo:
+     * 1. Verificação de Identidade: Garante que o solicitante existe e possui perfil de CLIENTE.
+     * 2. Disponibilidade do Serviço: Verifica se o serviço existe e se está ativo para novas ordens.
+     * 3. Regra de Auto-Contratação: Impede que um prestador contrate seus próprios serviços.
+     * 4. Controle de Duplicidade: Verifica no histórico se já existe uma solicitação em andamento
+     * (REQUESTED ou ACCEPTED) para evitar ordens duplicadas.
+     * 5. Montagem do Vínculo: Associa o Cliente, o Prestador (vindo do serviço) e o Serviço à Ordem.
+     * 6. Persistência e Auditoria: Salva a ordem com status inicial REQUESTED, acionando os
+     * campos de auditoria automáticos da migration V14.
+     */
     @Transactional
     public ServiceOrderResponseDTO create(UUID clienteId, ServiceOrderRequestDTO dto) {
+        log.info("Cliente {} tentando criar ordem para servico {}", clienteId, dto.serviceId());
+
+        // 1. Valida existência e perfil do Cliente
         UserModel cliente = userRepository.findById(clienteId)
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+                .orElseThrow(() -> {
+                    log.warn("Falha ao criar ordem: Cliente {} nao encontrado", clienteId);
+                    return new RuntimeException("Cliente não encontrado");
+                });
 
         if (!UserENUM.CLIENTE.equals(cliente.getPerfil())) {
+            log.warn("Tentativa negada: Usuario {} nao e um cliente", clienteId);
             throw new RuntimeException("Apenas clientes podem criar ordens de serviço");
         }
 
+        // 2. Valida existência e status do Serviço
         ServiceModel service = serviceRepository.findById(dto.serviceId())
-                .orElseThrow(() -> new RuntimeException("Serviço não encontrado"));
+                .orElseThrow(() -> {
+                    log.warn("Falha ao criar ordem: Servico {} nao encontrado", dto.serviceId());
+                    return new RuntimeException("Serviço não encontrado");
+                });
 
         if (Boolean.FALSE.equals(service.getAtivo())) {
+            log.warn("Falha ao criar ordem: Servico {} esta inativo", dto.serviceId());
             throw new RuntimeException("Serviço não está disponível");
         }
 
+        // 3. Impede auto-contratação
         if (service.getPrestador().getId().equals(clienteId)) {
+            log.warn("Tentativa negada: Cliente {} tentou contratar o proprio servico {}", clienteId, service.getId());
             throw new RuntimeException("Você não pode contratar seu próprio serviço");
         }
 
-        // Verifica se já existe ordem ativa para esse serviço
+        // 4. Verifica se já existe ordem ativa (Evita spam/duplicidade)
         boolean ordemAtiva = serviceOrderRepository
                 .findByClienteIdAndServiceId(clienteId, dto.serviceId())
                 .stream()
@@ -110,37 +134,62 @@ public class OrderService {
                         o.getStatus().equals(OrderStatusEnum.ACCEPTED));
 
         if (ordemAtiva) {
+            log.warn("Cliente {} ja possui ordem ativa para o servico {}", clienteId, service.getId());
             throw new RuntimeException("Você já possui uma ordem ativa para este serviço");
         }
 
+        // 5. Preparação do Modelo
         ServiceOrderModel order = serviceOrderMapper.toModel(dto);
         order.setCliente(cliente);
-        order.setPrestador(service.getPrestador());
+        order.setPrestador(service.getPrestador()); // Vincula o dono do serviço como prestador da ordem
         order.setService(service);
         order.setStatus(OrderStatusEnum.REQUESTED);
 
-        return serviceOrderMapper.toResponseDTO(serviceOrderRepository.save(order));
+        // 6. Persistência
+        ServiceOrderResponseDTO response = serviceOrderMapper.toResponseDTO(serviceOrderRepository.save(order));
+
+        log.info("Ordem criada com sucesso — id: {}, status: REQUESTED", response.id());
+        return response;
     }
 
-    // Atualiza status da ordem
-    // Regra: apenas o prestador pode ACCEPTED ou CANCELED (quando REQUESTED)
-    // Regra: apenas o prestador pode marcar como COMPLETED (quando ACCEPTED)
-    // Regra: cliente pode CANCELED apenas quando REQUESTED
-    // Regra: ordem COMPLETED ou CANCELED não pode mudar de status
+    /**
+     * Gerencia a transição de estados de uma Ordem de Serviço.
+     * * O processo segue este fluxo:
+     * 1. Recuperação e Proteção de Estado Final: Busca a ordem e impede qualquer alteração
+     * se ela já estiver em um estado terminal (COMPLETED ou CANCELED).
+     * 2. Identificação de Papéis: Determina se o usuário que solicita a alteração é o
+     * Cliente ou o Prestador vinculado àquela ordem específica.
+     * 3. Validação de Regras de Transição:
+     * - Prestador: Gere o ciclo de vida (Aceitar/Cancelar quando solicitado, Concluir quando aceito).
+     * - Cliente: Possui permissão limitada para desistência (Cancelar apenas antes do aceite).
+     * 4. Registro de Negócio: Caso a ordem seja concluída, registra o momento exato da entrega
+     * no campo 'concluidoEm'.
+     * 5. Persistência e Auditoria: Salva o novo status, disparando a atualização automática
+     * das colunas 'atualizado_em' e 'atualizado_por' (BaseEntity/V14).
+     */
     @Transactional
     public ServiceOrderResponseDTO updateStatus(UUID id, UUID usuarioId, OrderStatusEnum novoStatus) {
-        ServiceOrderModel order = serviceOrderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Ordem não encontrada"));
+        log.info("Atualizando status da ordem {} para {} — solicitado por usuario {}", id, novoStatus, usuarioId);
 
+        ServiceOrderModel order = serviceOrderRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Falha na atualizacao: Ordem {} nao encontrada", id);
+                    return new RuntimeException("Ordem não encontrada");
+                });
+
+        // 1. Regra de Imutabilidade de Estados Finais
         if (OrderStatusEnum.COMPLETED.equals(order.getStatus()) ||
                 OrderStatusEnum.CANCELED.equals(order.getStatus())) {
+            log.warn("Tentativa negada: Ordem {} ja esta finalizada como {}", id, order.getStatus());
             throw new RuntimeException("Ordem já finalizada não pode ter status alterado");
         }
 
         boolean isPrestador = order.getPrestador().getId().equals(usuarioId);
         boolean isCliente = order.getCliente().getId().equals(usuarioId);
 
-        // Prestador pode aceitar ou cancelar ordem REQUESTED
+        // 2. Validação de Permissões e Transições Lógicas
+
+        // Fluxo do PRESTADOR quando a ordem é solicitada (REQUESTED)
         if (isPrestador && OrderStatusEnum.REQUESTED.equals(order.getStatus())) {
             if (!OrderStatusEnum.ACCEPTED.equals(novoStatus) &&
                     !OrderStatusEnum.CANCELED.equals(novoStatus)) {
@@ -148,29 +197,34 @@ public class OrderService {
             }
         }
 
-        // Prestador pode completar ordem ACCEPTED
+        // Fluxo do PRESTADOR quando a ordem já foi aceita (ACCEPTED)
         else if (isPrestador && OrderStatusEnum.ACCEPTED.equals(order.getStatus())) {
             if (!OrderStatusEnum.COMPLETED.equals(novoStatus)) {
                 throw new RuntimeException("Prestador só pode COMPLETAR ordem aceita");
             }
-            // MANTIDO: concluídoEm é uma data de regra de negócio, não de auditoria simples
+            // Regra de Negócio: Data de conclusão real da entrega
             order.setConcluidoEm(LocalDateTime.now());
         }
 
-        // Cliente pode cancelar apenas ordem REQUESTED
+        // Fluxo do CLIENTE (Só cancela antes do prestador aceitar)
         else if (isCliente && OrderStatusEnum.REQUESTED.equals(order.getStatus())) {
             if (!OrderStatusEnum.CANCELED.equals(novoStatus)) {
                 throw new RuntimeException("Cliente só pode CANCELAR ordem solicitada");
             }
         }
 
+        // Bloqueio de Segurança: Usuário não pertence à ordem ou transição inválida
         else {
+            log.error("Acesso negado: Usuario {} tentou alterar ordem {} sem permissao", usuarioId, id);
             throw new RuntimeException("Você não tem permissão para alterar o status desta ordem");
         }
 
+        // 3. Aplicação da Mudança
         order.setStatus(novoStatus);
+        ServiceOrderResponseDTO response = serviceOrderMapper.toResponseDTO(serviceOrderRepository.save(order));
 
-        return serviceOrderMapper.toResponseDTO(serviceOrderRepository.save(order));
+        log.info("Status da ordem {} atualizado para {} com sucesso", id, novoStatus);
+        return response;
     }
 
     // Verifica se existe ordem COMPLETED entre cliente e serviço
