@@ -47,10 +47,12 @@ public class ServicoService {
     // Regra: apenas serviços ativos aparecem na listagem pública
     // Usa findByAtivo() — filtra direto no banco: WHERE ativo = true
     // Lista todos os serviços ativos com paginação
+    // O Hibernate intercepta a query e adiciona "WHERE ativo = true" no SQL final[cite: 169].
     public PaginatedResponse<ServiceResponseDTO> findAll(Pageable pageable) {
         Page<ServiceResponseDTO> page = serviceRepository
-                .findByAtivo(true, pageable)
+                .findAll(pageable) // @Where na ServiceModel garante ativo = true automaticamente [cite: 228]
                 .map(serviceMapper::toResponseDTO);
+
         return PaginatedResponse.of(page);
     }
 
@@ -59,14 +61,16 @@ public class ServicoService {
     // Usa findByCategoriaIdAndAtivo() — filtra direto no banco:
     // WHERE categoria_id = ? AND ativo = true
     // Lista serviços ativos por categoria com paginação
-    public PaginatedResponse<ServiceResponseDTO> findByCategory(
-            UUID categoriaId, Pageable pageable) {
+    // findByCategory — @Where já garante apenas ativos na busca por FK
+    public PaginatedResponse<ServiceResponseDTO> findByCategory(UUID categoriaId, Pageable pageable) {
+        // Busca a categoria: se estiver inativa, o @Where da CategoryModel fará com que não seja encontrada [cite: 274, 278]
         categoryRepository.findById(categoriaId)
-                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+                .orElseThrow(() -> new RuntimeException("Categoria nao encontrada"));
 
         Page<ServiceResponseDTO> page = serviceRepository
-                .findByCategoriaIdAndAtivo(categoriaId, true, pageable)
+                .findByCategoriaId(categoriaId, pageable) // @Where filtra ativos sem precisar de lógica no Service [cite: 151, 225]
                 .map(serviceMapper::toResponseDTO);
+
         return PaginatedResponse.of(page);
     }
 
@@ -75,14 +79,16 @@ public class ServicoService {
     // Regra: apenas serviços ativos aparecem para o público
     // Usa findByPrestadorIdAndAtivo() — filtra direto no banco
     // Lista serviços ativos do prestador (público) com paginação
-    public PaginatedResponse<ServiceResponseDTO> findByPrestador(
-            UUID prestadorId, Pageable pageable) {
+    // findByPrestador — @Where garante que o cliente não veja serviços inativos de um prestador
+    public PaginatedResponse<ServiceResponseDTO> findByPrestador(UUID prestadorId, Pageable pageable) {
+        // Busca o usuário: se estiver desativado, o @Where da UserModel impede o retorno [cite: 170, 172]
         userRepository.findById(prestadorId)
-                .orElseThrow(() -> new RuntimeException("Prestador não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Prestador nao encontrado"));
 
         Page<ServiceResponseDTO> page = serviceRepository
-                .findByPrestadorIdAndAtivo(prestadorId, true, pageable)
+                .findByPrestadorId(prestadorId, pageable) // @Where garante apenas serviços com ativo = true [cite: 228]
                 .map(serviceMapper::toResponseDTO);
+
         return PaginatedResponse.of(page);
     }
 

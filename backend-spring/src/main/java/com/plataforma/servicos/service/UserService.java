@@ -38,13 +38,14 @@ public class UserService {
         return userMapper.toResponseDTO(user);
     }
 
-    // Lista todos os usuários ativos com paginação
-    // Regra: apenas usuários com ativo = true aparecem
-    // Filtro feito direto no banco via findByAtivo()
+    // adicionando o @Where já para filtra automaticamente:
+    // O Hibernate intercepta a query e adiciona "WHERE ativo = true" no SQL final.
+    // Agora o findAll() padrão do JpaRepository já retorna apenas os registros ativos.
     public PaginatedResponse<UserResponseDTO> findAll(Pageable pageable) {
         Page<UserResponseDTO> page = userRepository
-                .findByAtivo(true, pageable)
+                .findAll(pageable) // O @Where injetado na Entity garante ativo = true automaticamente [cite: 169, 172]
                 .map(userMapper::toResponseDTO);
+
         return PaginatedResponse.of(page);
     }
 

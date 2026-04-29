@@ -34,7 +34,7 @@ public class CategoryService {
     // Filtro direto no banco via findByAtivo(true)
     public PaginatedResponse<CategoryResponseDTO> findAll(Pageable pageable) {
         Page<CategoryResponseDTO> page = categoryRepository
-                .findByAtivo(true, pageable)
+                .findAll(pageable) // @Where garante ativo = true
                 .map(categoryMapper::toResponseDTO);
         return PaginatedResponse.of(page);
     }
